@@ -2,8 +2,6 @@
 {
 	public interface IIoHandler
 	{
-		void GetInputParametres(string[] args);
-		void ReadTask();
-		void SaveResults();
+		void GetParameters(string[] args);
 	}
 }

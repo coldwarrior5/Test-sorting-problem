@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using TestSortingProblem.Handlers;
 using TestSortingProblem.Interfaces;
 
 namespace TestSortingProblem
@@ -15,7 +15,7 @@ namespace TestSortingProblem
 	    public static void Solve(string[] args)
 	    {
 			IIoHandler inputManager = new IoHandler();
-			inputManager.GetInputParametres(args);
+			inputManager.GetParameters(args);
 		}
     }
 }

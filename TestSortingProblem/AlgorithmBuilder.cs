@@ -6,11 +6,11 @@ namespace TestSortingProblem
 {
 	public abstract class AlgorithmBuilder : IAlgorithm
 	{
-		private TaskStructure _structure;
+	    private TaskStructure Structure { get; }
 
-		protected AlgorithmBuilder(TaskStructure structure)
+	    protected AlgorithmBuilder(TaskStructure structure)
 		{
-			_structure = structure;
+			Structure = structure;
 		}
 		
 		public abstract void Solve(ExecutionTime time);
