@@ -9,7 +9,7 @@ namespace TestSortingProblem.Handlers
     {
         private const string Comment = "%%";
         private const string InstanceInfo = "% ";
-        private const string EmptyLine = "\n";
+        private const string EmptyLine = "";
         private const string Test = "test";
         private const string Machine = "embedded_board";
         private const string Resource = "resource";
@@ -46,7 +46,7 @@ namespace TestSortingProblem.Handlers
             var data = _fileHandler.ReadFile();
             for (var i = 0; i < data.Length; i++)
             {
-                ParseLine(data[i], i);
+                ParseLine(data[i], i + 1);
             }
             CheckParameters();
             return new Instance(_tests, _machines, _resources, _resourcesCount);
@@ -54,18 +54,18 @@ namespace TestSortingProblem.Handlers
 
         private void ParseLine(string line, int position)
         {
-            if (line.StartsWith(Comment) || line.StartsWith(EmptyLine))
+            if (line.StartsWith(Comment) || line is EmptyLine)
                 return;
             if (line.StartsWith(InstanceInfo))
                 ParseInstance(line);
-            if (line.StartsWith(Test))
+            else if (line.StartsWith(Test))
                 ParseTest(line, position);
-            if(line.StartsWith(Machine))
+            else if(line.StartsWith(Machine))
                 ParseMachine(line);
-            if(line.StartsWith(Resource))
+            else if(line.StartsWith(Resource))
                 ParseResources(line);
-            
-            ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " is not valid.");
+            else
+                ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " is not valid.");
         }
 
         private void ParseInstance(string line)
@@ -98,75 +98,71 @@ namespace TestSortingProblem.Handlers
         private void ParseTest(string line, int position)
         {
             string testName = "";
-            int testDuration;
+            int testDuration = 0;
             List<string> machines = new List<string>();
             List<string> resources = new List<string>();
             
-            if(++_iTests >= _numTests)
+            if(_iTests >= _numTests)
                 ErrorHandler.TerminateExecution(ErrorCode.TooManyTests);
             
-            // Splits "test( 't1', 424, ['m1','m3'], ['r1'])"
-            // into "test( ", "t1", ", 424, ['m1','m3'], ['r1']"
             var splits = line.Split("'");
             if (splits[1] != null)
                 testName = splits[1];
             else
                 ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define test name.");
-            if (splits[2] != null)
+
+            splits = line.Split(" ");
+  
+            if(splits[2] != null)
             {
-                // Splits ", 424, ['m1','m3'], ['r1'])"
-                // into ",", " 424,", "['m1','m3'],", "['r1']"
-                var data = splits[2].Split(" ");
-                if(data[1] != null)
-                {
-                    var matches = Regex.Matches(data[1], "[0-9]+");
-                    int.TryParse(matches[0].Value, out testDuration);
-                }
-                else
-                    ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define test duration.");
-                if (data[2] != null)
-                {
-                    var matches = Regex.Matches(data[2], "a-zA-Z0-9]+");
-                    var instances = matches.GetEnumerator();
-                    while (instances.MoveNext())
-                        machines.Add(instances.Current.ToString());
-                }
-                else 
-                    ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define machines.");
-                if (data[3] != null)
-                {
-                    var matches = Regex.Matches(data[3], "a-zA-Z0-9]+");
-                    var instances = matches.GetEnumerator();
-                    while (instances.MoveNext())
-                        resources.Add(instances.Current.ToString());
-                }
-                else 
-                    ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define resources.");
+                var matches = Regex.Matches(splits[2], "[0-9]+");
+                int.TryParse(matches[0].Value, out testDuration);
             }
+            else
+                ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define test duration.");
+            if (splits[3] != null)
+            {
+                var matches = Regex.Matches(splits[3], "[a-zA-Z0-9]+");
+                var instances = matches.GetEnumerator();
+                while (instances.MoveNext())
+                    machines.Add(instances.Current.ToString());
+            }
+            else 
+                ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define machines.");
+            if (splits[4] != null)
+            {
+                var matches = Regex.Matches(splits[4], "[a-zA-Z0-9]+");
+                var instances = matches.GetEnumerator();
+                while (instances.MoveNext())
+                    resources.Add(instances.Current.ToString());
+            }
+            else 
+                ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define resources.");
             
-            _tests[_numTests] = new Test(testName, testDuration, machines, resources);
+            
+            _tests[_iTests++] = new Test(testName, testDuration, machines, resources);
         }
 
         private void ParseMachine(string line)
         {
-            if(++_iMachines >= _numMachines)
+            if(_iMachines >= _numMachines)
                 ErrorHandler.TerminateExecution(ErrorCode.TooManyMachines);
             var splits = line.Split("'");
             if (splits[1] != null)
             {
-                _machines[_iMachines] = splits[1];
+                _machines[_iMachines++] = splits[1];
             }
         }
 
         private void ParseResources(string line)
         {
-            if(++_iResources >= _numResources)
+            if(_iResources >= _numResources)
                 ErrorHandler.TerminateExecution(ErrorCode.TooManyResources);
             var splits = line.Split("'");
             if (splits[1] != null)
                 _resources[_iResources] = splits[1];
             if (splits[2] != null)
-               int.TryParse(Regex.Replace(splits[2], "[^0-9]+", string.Empty), out _resourcesCount[_iResources]);
+               int.TryParse(Regex.Replace(splits[2], "[^0-9]+", string.Empty), out _resourcesCount[_iResources++]);
         }
 
         private void CheckParameters()

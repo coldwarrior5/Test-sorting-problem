@@ -5,7 +5,7 @@ namespace TestSortingProblem.Structures
 	public enum ExecutionTime
 	{
 		OneMinute = 1,
-		FiveMutes = 5,
+		FiveMinutes = 5,
 		Unlimited = 0
 	}
 	
@@ -20,7 +20,7 @@ namespace TestSortingProblem.Structures
 				case ExecutionTime.OneMinute:
 					strRepresentation = "1m";
 					break;
-				case ExecutionTime.FiveMutes:
+				case ExecutionTime.FiveMinutes:
 					strRepresentation = "5m";
 					break;
 				case ExecutionTime.Unlimited:
@@ -42,7 +42,7 @@ namespace TestSortingProblem.Structures
 					time = ExecutionTime.OneMinute;
 					break;
 				case "5":
-					time = ExecutionTime.FiveMutes;
+					time = ExecutionTime.FiveMinutes;
 					break;
 				case "":
 				case "0":

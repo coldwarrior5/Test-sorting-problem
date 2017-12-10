@@ -37,10 +37,9 @@ namespace TestSortingProblem.Handlers
 		/// <param name="args">Console arguments</param>
 		/// <returns>Struct defining input parameters</returns>
 	    protected override InputData HandleArguments(string[] args)
-        {
-	        if (!File.Exists(args[0]))
+		{
+            if (!TryExtensions(args[0], out string fileName))
 		        ErrorHandler.TerminateExecution(ErrorCode.NoSuchFile, args[0]);
-	        var fileName = args[0];
 
 	        ExecutionTime time;
 	        if (args.Length == 1)
@@ -70,26 +69,33 @@ namespace TestSortingProblem.Handlers
 		private static string AskForFileName()
 		{
 			string result;
-			var correctInput = false;
+			bool correctInput;
 			do
 			{
 				result = ConsoleHandler.AskForInput<string>();
-				FilenameFormatter(result, out var fileName, out var path, out var extension);
-				if (extension != "")
-					correctInput = CheckIfFileExists(result);
-				else
-					foreach (var ext in Extensions)
-					{
-						result = FilenameFormatter(path, fileName, ext);
-						correctInput = CheckIfFileExists(result);
-					}
+				FilenameFormatter(result, out var path, out var fileName, out var extension);
+				correctInput = extension != "" ? CheckIfFileExists(result) : TryExtensions(result, out result);
 				if(!correctInput)
 					Console.WriteLine("Such file does not exist");
 			} while (!correctInput);
 			return result;
 		}
 
-		private static bool CheckIfFileExists(string fileName)
+	    private static bool TryExtensions(string fileName, out string newFileName)
+	    {
+	        newFileName = fileName; 
+	        FilenameFormatter(fileName, out var path, out var tempFileName, out _);
+            bool correctFile = false;
+
+            foreach (var ext in Extensions)
+	        {
+	            newFileName = FilenameFormatter(path, tempFileName, ext);
+	            correctFile = CheckIfFileExists(newFileName);
+	        }
+	        return correctFile;
+	    }
+
+	    private static bool CheckIfFileExists(string fileName)
 		{
 			return File.Exists(fileName);
 		}
@@ -122,7 +128,7 @@ namespace TestSortingProblem.Handlers
 		}
 		
 		// ReSharper disable once UnusedMember.Local
-		public static void FilenameFormatter(string fullFileName, out string fileName, out string path, out string extension)
+		public static void FilenameFormatter(string fullFileName, out string path, out string fileName, out string extension)
 		{
 			var splits = fullFileName.Split(".");
 			extension = (splits.Length > 1) ? splits[splits.Length - 1] : "";
