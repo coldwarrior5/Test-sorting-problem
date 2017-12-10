@@ -4,18 +4,21 @@ using TestSortingProblem.Interfaces;
 
 namespace TestSortingProblem
 {
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             Console.WriteLine("Test sorting problem");
 	        Solve(args);
         }
 
-	    public static void Solve(string[] args)
+	    private static void Solve(string[] args)
 	    {
 			IIoHandler inputManager = new IoHandler();
-			inputManager.GetParameters(args);
+		    var data = inputManager.GetParameters(args);
+		    IParser parser = new Parser(data);
+		    IAlgorithm algorithm = new Algorithm(parser.ParseData(), data.Time);
+		 	algorithm.Solve();
 		}
     }
 }

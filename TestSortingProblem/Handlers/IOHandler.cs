@@ -1,13 +1,15 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using TestSortingProblem.Abstract;
 using TestSortingProblem.Structures;
 
 namespace TestSortingProblem.Handlers
 {
 	public class IoHandler : IoAbstract
 	{
-		private static readonly string[] TerminationExpressions = {"quit", "stop", "exit", "terminate", "q"};
-
+		private static readonly List<string> Extensions = new List<string> { "", "txt" };
+			
 		public override InputData GetParameters(string[] args)
 		{
 			InputData data;
@@ -57,29 +59,73 @@ namespace TestSortingProblem.Handlers
 		/// <returns>Struct defining input parameters</returns>
 	    protected override InputData ConsoleParameters()
 		{
-			throw new System.NotImplementedException();
+			ConsoleHandler.NotifyUserOfTermination();
+			Console.WriteLine("Filename, including path, of test data.");
+			var fileName = AskForFileName();
+			Console.WriteLine("Execution limit? (1, 5, or 0 for unlimited. Default is unlimited)");
+			var time = AskForTime();
+			return new InputData(fileName, time);
 		}
 		
-		// ReSharper disable once UnusedMember.Local
-		private static void CheckIfTerminating(string input)
+		private static string AskForFileName()
 		{
-			if(TerminationExpressions.Contains(input))
-				ErrorHandler.TerminateExecution(ErrorCode.UserTermination);
+			string result;
+			var correctInput = false;
+			do
+			{
+				result = ConsoleHandler.AskForInput<string>();
+				FilenameFormatter(result, out var fileName, out var path, out var extension);
+				if (extension != "")
+					correctInput = CheckIfFileExists(result);
+				else
+					foreach (var ext in Extensions)
+					{
+						result = FilenameFormatter(path, fileName, ext);
+						correctInput = CheckIfFileExists(result);
+					}
+				if(!correctInput)
+					Console.WriteLine("Such file does not exist");
+			} while (!correctInput);
+			return result;
+		}
+
+		private static bool CheckIfFileExists(string fileName)
+		{
+			return File.Exists(fileName);
+		}
+
+		private static ExecutionTime AskForTime()
+		{
+			ExecutionTime time;
+			var correctInput = false;
+			do
+			{
+				var result = ConsoleHandler.AskForInput("");
+				if (!StringTime.Decode(result, out time))
+				{
+					Console.WriteLine("Such time is not valid.");
+					continue;
+				}
+				correctInput = true;
+			} while (!correctInput);
+			return time;
 		}
 
 	    // ReSharper disable once UnusedMember.Local
-		private static string FilenameFormatter(string path, string fileName, string extension)
+		public static string FilenameFormatter(string path, string fileName, string extension)
 		{
 		    // ReSharper disable once SuggestVarOrType_BuiltInTypes
-			string filename = path + "/" + fileName + "." + extension;
-			return filename;
+			string fullFileName = (path != "") ? path + "/" : "";
+			fullFileName += fileName;
+			fullFileName += (extension != "") ? "." + extension : "";
+			return fullFileName;
 		}
 		
 		// ReSharper disable once UnusedMember.Local
-		private static void FilenameFormatter(string fullFileName, out string fileName, out string path, out string extension)
+		public static void FilenameFormatter(string fullFileName, out string fileName, out string path, out string extension)
 		{
 			var splits = fullFileName.Split(".");
-			extension = (splits.Length > 1) ? splits[splits.Length] : "";
+			extension = (splits.Length > 1) ? splits[splits.Length - 1] : "";
 			
 			splits = fullFileName.Split("/");
 			fileName = splits[splits.Length - 1].Split(".")[0];

@@ -1,4 +1,6 @@
-﻿namespace TestSortingProblem.Structures
+﻿using System;
+
+namespace TestSortingProblem.Structures
 {
 	public enum ExecutionTime
 	{
@@ -9,6 +11,28 @@
 	
 	public static class StringTime
 	{
+		public static string ToString(ExecutionTime time)
+		{
+			string strRepresentation;
+			
+			switch (time)
+			{
+				case ExecutionTime.OneMinute:
+					strRepresentation = "1m";
+					break;
+				case ExecutionTime.FiveMutes:
+					strRepresentation = "5m";
+					break;
+				case ExecutionTime.Unlimited:
+					strRepresentation = "ne";
+					break;
+				default:
+					strRepresentation = "";
+					throw new ArgumentException("No such argument");
+			}
+			return strRepresentation;
+		}
+		
 		public static bool Decode(string choice, out ExecutionTime time)
 		{
 			var correct = true;
@@ -20,6 +44,7 @@
 				case "5":
 					time = ExecutionTime.FiveMutes;
 					break;
+				case "":
 				case "0":
 					time = ExecutionTime.Unlimited;
 					break;

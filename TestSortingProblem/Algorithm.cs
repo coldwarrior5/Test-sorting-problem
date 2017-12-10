@@ -10,11 +10,11 @@ namespace TestSortingProblem
 		private const double _mutationProbability = 0.01;
 		private List<string> _solution;
 		
-		public Algorithm(Instance structure) : base(structure)
+		public Algorithm(Instance instance, ExecutionTime time) : base(instance, time)
 		{
 		}
 
-		public override void Solve(ExecutionTime time)
+		public override void Solve()
 		{
 			
 			throw new System.NotImplementedException();

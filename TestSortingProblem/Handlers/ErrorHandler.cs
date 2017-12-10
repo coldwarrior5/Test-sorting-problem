@@ -7,7 +7,17 @@ namespace TestSortingProblem.Handlers
         InvalidNumInputParameters,
         InvalidInputParameter,
         UserTermination,
-        NoSuchFile
+        NoSuchFile,
+        UndefinedNumberOfTests,
+        UndefinedNumberOfMachines,
+        UndefinedNumberOfResources,
+        ImproperLine,
+        NotEnoughTests,
+        NotEnoughMachines,
+        NotEnoughResources,
+        TooManyTests,
+        TooManyMachines,
+        TooManyResources
     }
     
     public static class ErrorHandler
@@ -20,7 +30,7 @@ namespace TestSortingProblem.Handlers
 
         private static string ErrorMessage(ErrorCode code)
         {
-            var explanation = "";
+            string explanation;
             
             switch (code)
             {
@@ -35,6 +45,36 @@ namespace TestSortingProblem.Handlers
                     break;
                 case ErrorCode.InvalidInputParameter:
                     explanation = "Invalid input parameter.";
+                    break;
+                case ErrorCode.UndefinedNumberOfTests:
+                    explanation = "Undefined number of Tests.";
+                    break;
+                case ErrorCode.UndefinedNumberOfMachines:
+                    explanation = "Undefined number of Machines.";
+                    break;
+                case ErrorCode.UndefinedNumberOfResources:
+                    explanation = "Undefined number of Resources.";
+                    break;
+                case ErrorCode.ImproperLine:
+                    explanation = "File contains irregular line.";
+                    break;
+                case ErrorCode.NotEnoughTests:
+                    explanation = "Not enough tests according to specification.";
+                    break;
+                case ErrorCode.NotEnoughMachines:
+                    explanation = "Not enough machines according to specification.";
+                    break;
+                case ErrorCode.NotEnoughResources:
+                    explanation = "Not enough resources according to specification.";
+                    break;
+                case ErrorCode.TooManyTests:
+                    explanation = "Too many tests according to specification.";
+                    break;
+                case ErrorCode.TooManyMachines:
+                    explanation = "Too many machines according to specification.";
+                    break;
+                case ErrorCode.TooManyResources:
+                    explanation = "Too many resources according to specification.";
                     break;
                 default:
                     throw new ArgumentException("Such error is non existant.");

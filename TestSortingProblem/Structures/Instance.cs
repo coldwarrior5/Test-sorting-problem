@@ -3,15 +3,17 @@ namespace TestSortingProblem.Structures
 {
 	public class Instance
 	{
-		public readonly List<Test> Tests;
-		public readonly List<string> Machines;
-		public readonly List<string> Resources;
+		public readonly Test[] Tests;
+		public readonly string[] Machines;
+		public readonly string[] Resources;
+		public readonly int[] ResourcesCount;
 
-		protected Instance(List<Test> tests, List<string> machines, List<string> resources)
+		public Instance(Test[] tests, string[] machines, string[] resources, int[] resourcesCount)
 		{
 			Tests = tests;
 			Machines = machines;
 			Resources = resources;
+			ResourcesCount = resourcesCount;
 		}
 
 	}

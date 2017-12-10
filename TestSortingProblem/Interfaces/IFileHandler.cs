@@ -2,7 +2,7 @@
 {
     public interface IFileHandler
     {
-        void ReadFile();
-        void SaveFile();
+        string[] ReadFile();
+        void SaveFile(string[] outputBuffer);
     }
 }

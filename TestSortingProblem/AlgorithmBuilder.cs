@@ -6,14 +6,16 @@ namespace TestSortingProblem
 {
 	public abstract class AlgorithmBuilder : IAlgorithm
 	{
-	    private Instance Structure { get; }
+	    private Instance Instance { get; }
+		private ExecutionTime Time { get; }
 
-	    protected AlgorithmBuilder(Instance structure)
+	    protected AlgorithmBuilder(Instance structure, ExecutionTime time)
 		{
-			Structure = structure;
+			Instance = structure;
+			Time = time;
 		}
 		
-		public abstract void Solve(ExecutionTime time);
+		public abstract void Solve();
 
 		protected abstract void Iterate();
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace TestSortingProblem
+﻿namespace TestSortingProblem
 {
 	/*
 	public abstract class Ga
