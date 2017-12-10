@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using TestSortingProblem.Structures;
 
@@ -19,13 +18,11 @@ namespace TestSortingProblem.Handlers
 					data = ConsoleParameters();
 					break;
 				case 1:
-					data = HandleArguments(args);
-					break;
 				case 2:
 					data = HandleArguments(args);
 					break;
 				default:
-					Console.WriteLine("Arguments cannot have other posibilities.");
+					ErrorHandler.TerminateExecution(ErrorCode.InvalidNumInputParameters);
 					data = null;
 					break;
 			}

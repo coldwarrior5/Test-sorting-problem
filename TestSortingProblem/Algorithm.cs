@@ -8,6 +8,7 @@ namespace TestSortingProblem
 		private const double _mortality = 0.5;
 		private const int _populationSize = 100;
 		private const double _mutationProbability = 0.01;
+		private List<string> _solution;
 		
 		public Algorithm(Instance structure) : base(structure)
 		{
@@ -43,10 +44,47 @@ namespace TestSortingProblem
 			 */
 			throw new System.NotImplementedException();
 		}
+		
+		private void ThreeTournament(int index)
+		{
+			/*
+			Random rnd = new Random(index);
+			List<int> choices = new List<int>(3);
+			while (true)
+			{
+				int randNum = rnd.Next(1, _data.PopulationSize);
+				if (choices.Contains(randNum)) continue;
+				choices.Add(randNum);
+				if(choices.Count == 3)
+					break;
+			}
+
+			List<Genome> order = new List<Genome>(3);
+			for (int i = 0; i < 3; i++)
+			{
+				Genome choice = Population[choices[i]];
+				order.Add(choice);
+			}
+
+			Genome temp = new Genome(order[2].Genes);
+			Order(order);
+			temp.Copy(order[2]);
+
+			Crossover(order[0], order[1], ref temp);
+			for (int i = 0; i < temp.Genes.Length; i++)
+			{
+				if (Rand.NextDouble() < _data.MutationProbability)
+					Mutation(ref temp, i);
+			}
+			DetermineGenomeFitness(ref temp);
+			order[2].Copy(temp);
+			*/
+		}
 
 		protected override void UpdateResult(List<string> results)
 		{
-			throw new System.NotImplementedException();
+			_solution.Clear();
+			_solution.AddRange(results);
 		}
 	}
 }
