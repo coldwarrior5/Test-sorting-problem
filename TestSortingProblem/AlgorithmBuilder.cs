@@ -6,9 +6,9 @@ namespace TestSortingProblem
 {
 	public abstract class AlgorithmBuilder : IAlgorithm
 	{
-	    private TaskStructure Structure { get; }
+	    private Instance Structure { get; }
 
-	    protected AlgorithmBuilder(TaskStructure structure)
+	    protected AlgorithmBuilder(Instance structure)
 		{
 			Structure = structure;
 		}

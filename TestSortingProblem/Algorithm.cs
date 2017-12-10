@@ -5,7 +5,7 @@ namespace TestSortingProblem
 {
 	public class Algorithm : AlgorithmBuilder
 	{
-		public Algorithm(TaskStructure structure) : base(structure)
+		public Algorithm(Instance structure) : base(structure)
 		{
 		}
 

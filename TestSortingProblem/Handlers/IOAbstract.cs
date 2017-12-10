@@ -1,11 +1,12 @@
 ﻿using TestSortingProblem.Interfaces;
+using TestSortingProblem.Structures;
 
 namespace TestSortingProblem.Handlers
 {
     public abstract class IoAbstract : IIoHandler
     {
-        public abstract void GetParameters(string[] args);
-        protected abstract void HandleArguments(string[] args);
-        protected abstract void ConsoleParameters();
+        public abstract InputData GetParameters(string[] args);
+        protected abstract InputData HandleArguments(string[] args);
+        protected abstract InputData ConsoleParameters();
     }
 }

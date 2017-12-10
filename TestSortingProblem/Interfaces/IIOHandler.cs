@@ -1,7 +1,9 @@
-﻿namespace TestSortingProblem.Interfaces
+﻿using TestSortingProblem.Structures;
+
+namespace TestSortingProblem.Interfaces
 {
 	public interface IIoHandler
 	{
-		void GetParameters(string[] args);
+		InputData GetParameters(string[] args);
 	}
 }

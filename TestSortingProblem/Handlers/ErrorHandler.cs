@@ -2,27 +2,44 @@
 
 namespace TestSortingProblem.Handlers
 {
+    public enum ErrorCode
+    {
+        InvalidNumInputParameters,
+        InvalidInputParameter,
+        UserTermination,
+        NoSuchFile
+    }
+    
     public static class ErrorHandler
     {
-        public enum ErrorCode
+        public static void TerminateExecution(ErrorCode code, string explanation = "")
         {
-            InvalidInputParameters = 1,
-            UserTermination = 2
+            Console.WriteLine("Application stopped.\nReason: " + ErrorMessage(code) + " " + explanation);
+            Environment.Exit((int) code);
         }
 
-        public static void Notify(ErrorCode code, string explanation = "")
+        private static string ErrorMessage(ErrorCode code)
         {
+            var explanation = "";
+            
             switch (code)
             {
-                case ErrorCode.InvalidInputParameters:
-                    Console.WriteLine("Invalid number of input parameters.");
+                case ErrorCode.InvalidNumInputParameters:
+                    explanation = "Invalid number of input parameters.";
                     break;
                 case ErrorCode.UserTermination:
-                    Console.WriteLine("User has terminated the application.");
+                    explanation = "User has terminated the application.";
+                    break;
+                case ErrorCode.NoSuchFile:
+                    explanation = "There is no such file.";
+                    break;
+                case ErrorCode.InvalidInputParameter:
+                    explanation = "Invalid input parameter.";
                     break;
                 default:
-                    throw new ArgumentException("Such error is non existant");
+                    throw new ArgumentException("Such error is non existant.");
             }
+            return explanation;
         }
     }
 }
