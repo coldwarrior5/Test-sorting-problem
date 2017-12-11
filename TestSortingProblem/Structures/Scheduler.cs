@@ -92,5 +92,18 @@ namespace TestSortingProblem.Structures
             ResourceSize[thisSchedule.ResourceIndex]--;
             dependecy?.Remove(null, dependentSchedule, null);
         }
+
+        public void Copy(Scheduler original)
+        {
+            if (ResourceCount != original.ResourceCount)
+                return;
+            
+            for (var i = 0; i < original.ResourceCount; i++)
+            {
+                ResourceSize[i] = original.ResourceSize[i];
+                _starts[i].AddRange(original._starts[i]);
+                _ends[i].AddRange(original._ends[i]);
+            }
+        }
     }
 }

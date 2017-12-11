@@ -68,6 +68,30 @@ namespace TestSortingProblem.GeneticAlgorithm
             return _startingTimes;
         }
 
+        public Scheduler GetMachineScheduler(int index)
+        {
+            return _machineSchedulers[index];
+        }
+        
+        public Scheduler CopyMachineScheduler(int index)
+        {
+            var newMachineScheduler = new Scheduler(_machineSchedulers[index].ResourceCount);
+            newMachineScheduler.Copy(_machineSchedulers[index]);
+            return newMachineScheduler;
+        }
+        
+        public Scheduler GetResourceScheduler(int index)
+        {
+            return _resourceSchedulers[index];
+        }
+        
+        public Scheduler CopyResourceeScheduler(int index)
+        {
+            var newResourceScheduler = new Scheduler(_resourceSchedulers[index].ResourceCount);
+            newResourceScheduler.Copy(_resourceSchedulers[index]);
+            return newResourceScheduler;
+        }
+
         public void SetMachines(string[] machines)
         {
             if (machines.Length != Size)
@@ -95,6 +119,24 @@ namespace TestSortingProblem.GeneticAlgorithm
             for (var i = 0; i < Size; i++)
             {
                 _endingTimes[i] = endingTimes[i];
+            }
+        }
+
+        public void Copy(Genome newState)
+        {
+            if (Size != newState.Size)
+                return;
+            for (var i = 0; i < newState.Size; i++)
+            {
+                _startingTimes[i] = newState._startingTimes[i];
+                _endingTimes[i] = newState._endingTimes[i];
+                _machines[i] = newState._machines[i];
+            }
+
+            for (var i = 0; i < newState._machineSchedulers.Length; i++)
+            {
+                _machineSchedulers[i].Copy(newState.CopyMachineScheduler(i));
+                _resourceSchedulers[i].Copy(newState.CopyResourceeScheduler(i));
             }
         }
     }
