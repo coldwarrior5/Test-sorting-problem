@@ -1,4 +1,4 @@
-﻿namespace TestSortingProblem
+﻿namespace TestSortingProblem.GeneticAlgorithm
 {
 	/*
 	public abstract class Ga

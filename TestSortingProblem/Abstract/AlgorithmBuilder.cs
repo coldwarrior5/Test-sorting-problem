@@ -2,7 +2,7 @@
 using TestSortingProblem.Interfaces;
 using TestSortingProblem.Structures;
 
-namespace TestSortingProblem
+namespace TestSortingProblem.Abstract
 {
 	public abstract class AlgorithmBuilder : IAlgorithm
 	{

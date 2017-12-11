@@ -52,7 +52,17 @@ namespace TestSortingProblem.Handlers
             return new Instance(_tests, _machines, _resources, _resourcesCount);
         }
 
-        private void ParseLine(string line, int position)
+	    public void FormatAndSaveResult(string[] result)
+	    {
+			_fileHandler.SaveFile(FormatData(result));
+	    }
+
+	    private string[] FormatData(string[] input)
+	    {
+		    return input;
+	    }
+
+	    private void ParseLine(string line, int position)
         {
             if (line.StartsWith(Comment) || line is EmptyLine)
                 return;

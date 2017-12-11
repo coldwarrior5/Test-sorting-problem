@@ -1,4 +1,5 @@
 ﻿using System;
+using TestSortingProblem.GeneticAlgorithm;
 using TestSortingProblem.Handlers;
 using TestSortingProblem.Interfaces;
 
@@ -10,6 +11,7 @@ namespace TestSortingProblem
         {
             Console.WriteLine("Test sorting problem");
 	        Solve(args);
+			Console.WriteLine("Application finished execution");
         }
 
 	    private static void Solve(string[] args)
@@ -19,6 +21,7 @@ namespace TestSortingProblem
 		    IParser parser = new Parser(data);
 		    IAlgorithm algorithm = new Algorithm(parser.ParseData(), data.Time);
 		 	algorithm.Solve();
+			
 		}
     }
 }

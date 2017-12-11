@@ -1,17 +1,19 @@
 ﻿using System.Collections.Generic;
+using TestSortingProblem.Abstract;
 using TestSortingProblem.Structures;
 
-namespace TestSortingProblem
+namespace TestSortingProblem.GeneticAlgorithm
 {
 	public class Algorithm : AlgorithmBuilder
 	{
-		private const double _mortality = 0.5;
-		private const int _populationSize = 100;
-		private const double _mutationProbability = 0.01;
+		private const double Mortality = 0.5;
+		private const int PopulationSize = 100;
+		private const double MutationProbability = 0.01;
 		private List<string> _solution;
 		
 		public Algorithm(Instance instance, ExecutionTime time) : base(instance, time)
 		{
+			_solution = new List<string>(instance.Tests.Length);
 		}
 
 		public override void Solve()
