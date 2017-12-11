@@ -91,6 +91,8 @@ namespace TestSortingProblem.Handlers
 	        {
 	            newFileName = FilenameFormatter(path, tempFileName, ext);
 	            correctFile = CheckIfFileExists(newFileName);
+				if(correctFile)
+					break;
 	        }
 	        return correctFile;
 	    }
@@ -117,11 +119,10 @@ namespace TestSortingProblem.Handlers
 			return time;
 		}
 
-	    // ReSharper disable once UnusedMember.Local
 		public static string FilenameFormatter(string path, string fileName, string extension)
 		{
 		    // ReSharper disable once SuggestVarOrType_BuiltInTypes
-			string fullFileName = (path != "") ? path + "/" : "";
+			string fullFileName = path;
 			fullFileName += fileName;
 			fullFileName += (extension != "") ? "." + extension : "";
 			return fullFileName;
