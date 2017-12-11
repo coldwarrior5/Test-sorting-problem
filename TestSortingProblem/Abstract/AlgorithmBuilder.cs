@@ -5,8 +5,8 @@ namespace TestSortingProblem.Abstract
 {
 	public abstract class AlgorithmBuilder : IAlgorithm
 	{
-	    private Instance Instance { get; }
-		private ExecutionTime Time { get; }
+		protected Instance Instance;
+		protected ExecutionTime Time;
 
 	    protected AlgorithmBuilder(Instance structure, ExecutionTime time)
 		{

@@ -1,6 +1,4 @@
-﻿using TestSortingProblem.Structures;
-
-namespace TestSortingProblem.Interfaces
+﻿namespace TestSortingProblem.Interfaces
 {
 	public interface IAlgorithm
 	{

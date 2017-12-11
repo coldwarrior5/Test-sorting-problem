@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-namespace TestSortingProblem.Structures
+﻿namespace TestSortingProblem.Structures
 {
 	public class Instance
 	{

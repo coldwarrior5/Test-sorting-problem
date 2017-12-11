@@ -27,7 +27,6 @@ namespace TestSortingProblem.Structures
 					strRepresentation = "ne";
 					break;
 				default:
-					strRepresentation = "";
 					throw new ArgumentException("No such argument");
 			}
 			return strRepresentation;
