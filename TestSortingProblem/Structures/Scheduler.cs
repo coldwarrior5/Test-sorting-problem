@@ -85,5 +85,12 @@ namespace TestSortingProblem.Structures
             _ends[schedule.ResourceIndex].Insert(schedule.Place, schedule.StartTime + length);
             ResourceSize[schedule.ResourceIndex]++;
         }
+
+        private void Remove(Scheduler dependecy, Schedule thisSchedule, Schedule dependentSchedule)
+        {
+            _starts[thisSchedule.ResourceIndex].RemoveAt(thisSchedule.Place);
+            ResourceSize[thisSchedule.ResourceIndex]--;
+            dependecy?.Remove(null, dependentSchedule, null);
+        }
     }
 }
