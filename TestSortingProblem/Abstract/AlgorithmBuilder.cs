@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using TestSortingProblem.Interfaces;
+﻿using TestSortingProblem.Interfaces;
 using TestSortingProblem.Structures;
 
 namespace TestSortingProblem.Abstract
@@ -19,6 +18,6 @@ namespace TestSortingProblem.Abstract
 
 		protected abstract void Iterate();
 
-		protected abstract void UpdateResult(List<string> results);
+		protected abstract void UpdateResult(Solution results);
 	}
 }

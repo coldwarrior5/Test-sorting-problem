@@ -52,14 +52,21 @@ namespace TestSortingProblem.Handlers
             return new Instance(_tests, _machines, _resources, _resourcesCount);
         }
 
-	    public void FormatAndSaveResult(string[] result)
+	    public void FormatAndSaveResult(Solution result)
 	    {
 			_fileHandler.SaveFile(FormatData(result));
 	    }
 
-	    private string[] FormatData(string[] input)
+	    private static string[] FormatData(Solution input)
 	    {
-		    return input;
+	        string[] result = new string[input.Size];
+	        string[] tests = input.GetTests();
+	        string[] machines = input.GetMachines();
+	        int[] times = input.GetTimes();
+	        
+	        for (var i = 0; i < input.Size; i++)
+	            result[i] = "'" + tests[i] + "'," + times[i].ToString() + ",'" + machines[i];
+		    return result;
 	    }
 
 	    private void ParseLine(string line, int position)

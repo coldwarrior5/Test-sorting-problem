@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using TestSortingProblem.Abstract;
+﻿using TestSortingProblem.Abstract;
 using TestSortingProblem.Structures;
 
 namespace TestSortingProblem.GeneticAlgorithm
@@ -9,11 +8,11 @@ namespace TestSortingProblem.GeneticAlgorithm
 		private const double Mortality = 0.5;
 		private const int PopulationSize = 100;
 		private const double MutationProbability = 0.01;
-		private List<string> _solution;
+		private Solution _solution;
 		
 		public Algorithm(Instance instance, ExecutionTime time) : base(instance, time)
 		{
-			_solution = new List<string>(instance.Tests.Length);
+			_solution = new Solution(instance.Tests.Length);
 		}
 
 		public override void Solve()
@@ -83,10 +82,11 @@ namespace TestSortingProblem.GeneticAlgorithm
 			*/
 		}
 
-		protected override void UpdateResult(List<string> results)
+		protected override void UpdateResult(Solution results)
 		{
-			_solution.Clear();
-			_solution.AddRange(results);
+			_solution.SetTests(results.GetTests());
+			_solution.SetMachines(results.GetMachines());
+			_solution.SetTimes(results.GetTimes());
 		}
 	}
 }

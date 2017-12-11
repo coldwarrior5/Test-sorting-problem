@@ -73,7 +73,7 @@ namespace TestSortingProblem.Handlers
 			do
 			{
 				result = ConsoleHandler.AskForInput<string>();
-				FilenameFormatter(result, out var path, out var fileName, out var extension);
+				FilenameFormatter(result, out var _, out var _, out var extension);
 				correctInput = extension != "" ? CheckIfFileExists(result) : TryExtensions(result, out result);
 				if(!correctInput)
 					Console.WriteLine("Such file does not exist");
@@ -85,7 +85,7 @@ namespace TestSortingProblem.Handlers
 	    {
 	        newFileName = fileName; 
 	        FilenameFormatter(fileName, out var path, out var tempFileName, out _);
-            bool correctFile = false;
+            var correctFile = false;
 
             foreach (var ext in Extensions)
 	        {
