@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using TestSortingProblem.Structures;
 
 namespace TestSortingProblem.GeneticAlgorithm
@@ -6,6 +7,7 @@ namespace TestSortingProblem.GeneticAlgorithm
     public class Genome
     {
         public int Size { get; }
+        private readonly Instance _instance;
         private int[] _startingTimes;
         private int[] _endingTimes;
         private string[] _machines;
@@ -14,15 +16,22 @@ namespace TestSortingProblem.GeneticAlgorithm
         private Scheduler[] _resourceSchedulers;
 	    public int Fitness;
 
+        private Schedule _instanceSchedule;
+        private Schedule _dependencySchedule;
+
         public Genome(Instance instance)
         {
             Size = instance.Tests.Length;
+            _instance = instance;
+            _instanceSchedule = new Schedule();
+            _dependencySchedule = new Schedule();
             InitArrays(instance);
         }
 
         public Genome(int[] startingTimes, int[] endingTimes, string[] machines, Instance instance)
         {
 	        Size = instance.Tests.Length;
+            _instance = instance;
             var startingLength = startingTimes.Length;
             var endingLength = endingTimes.Length;
             var machinesLength = machines.Length;
@@ -52,6 +61,30 @@ namespace TestSortingProblem.GeneticAlgorithm
                 _machineSchedulers[i] = new Scheduler(1);
             for (var i = 0; i < resources.Length; i++)
                 _resourceSchedulers[i] = new Scheduler(resourcesCountList[i]);
+        }
+
+        public bool FindSchedule(int index)
+        {
+            Schedule tempSchedule;
+            Schedule tempDependancySchedule;
+            var success = false;
+            var length = _instance.Tests[index].Length;
+            
+            foreach (Scheduler t in _machineSchedulers)
+            {
+                if (t.CanFit(length, _resourceSchedulers[index], out tempSchedule,
+                    out tempDependancySchedule))
+                {
+                    success = true;
+                }
+                if (tempSchedule.StartTime >= _instanceSchedule.StartTime) continue;
+                _instanceSchedule.Copy(tempSchedule);
+                _dependencySchedule.Copy(tempDependancySchedule);
+            }
+
+            _machineSchedulers[index].TryAdd(length, _instanceSchedule, _resourceSchedulers[index], _dependencySchedule);
+            
+            return success;
         }
 
         public int[] GetEndingTimes()
@@ -169,5 +202,17 @@ namespace TestSortingProblem.GeneticAlgorithm
 	    {
 		    return "begins at: " + genome.FirstStart() + ", ends at:" + genome.LastEnd();
 	    }
+
+        public static Genome RandomGenome(Instance instance)
+        {
+            Random rand = new Random();
+            Genome result = new Genome(instance);
+            int[] randomChoice = Enumerable.Range(0, result.Size).OrderBy(x => rand.Next()).ToArray();
+            for (int i = 0; i < result.Size; i++)
+            {
+                result.FindSchedule(randomChoice[i]);
+            }
+            return result;
+        }
     }
 }

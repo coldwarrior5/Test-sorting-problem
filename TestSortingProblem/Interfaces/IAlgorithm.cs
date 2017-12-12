@@ -1,7 +1,9 @@
-﻿namespace TestSortingProblem.Interfaces
+﻿using TestSortingProblem.Structures;
+
+namespace TestSortingProblem.Interfaces
 {
 	public interface IAlgorithm
 	{
-		void Solve();
+		Solution Solve(bool consolePrint = false);
 	}
 }

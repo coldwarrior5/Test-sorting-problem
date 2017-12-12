@@ -2,6 +2,7 @@
 using TestSortingProblem.GeneticAlgorithm;
 using TestSortingProblem.Handlers;
 using TestSortingProblem.Interfaces;
+using TestSortingProblem.Structures;
 
 namespace TestSortingProblem
 {
@@ -20,8 +21,8 @@ namespace TestSortingProblem
 		    var data = inputManager.GetParameters(args);
 		    IParser parser = new Parser(data);
 		    IAlgorithm algorithm = new Algorithm(parser.ParseData(), data.Time);
-		 	algorithm.Solve();
-			
+		 	Solution solution = algorithm.Solve(true);
+		    parser.FormatAndSaveResult(solution);
 		}
     }
 }

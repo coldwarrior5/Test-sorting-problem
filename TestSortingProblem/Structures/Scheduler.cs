@@ -38,8 +38,21 @@ namespace TestSortingProblem.Structures
             scheduler?.Add(another, length);
             return true;
         }
+        
+        public bool TryAdd(int length, Schedule instance, Scheduler scheduler, Schedule dependency)
+        {
+            Add(instance, length);
+            scheduler?.Add(dependency, length);
+            return true;
+        }
 
         public bool CanFit(int length, Scheduler scheduler, out Schedule instance, out Schedule schedulerInstance)
+        {
+            return CanFit(-1, length, scheduler, out instance, out schedulerInstance);
+        }
+
+
+        public bool CanFit(int startTime, int length, Scheduler scheduler, out Schedule instance, out Schedule schedulerInstance)
         {
             var found = false;
             instance = new Schedule();
@@ -49,10 +62,16 @@ namespace TestSortingProblem.Structures
             {
                 for (var j = 0; j < ResourceSize[i]; j++)
                 {
+                    // Checks if the Scheduler must respect other Scheduler timeline
+                    if (startTime != -1 && _starts[i][j] < startTime)
+                        continue;
+                    
+                    // Now we need to ascertain time window for the Schedule to fit in
                     var ends = (j == 0) ? 0 : _ends[i][j - 1];
                     if (_starts[i][j] - ends - 1 < length)
                         continue;
                     
+                    // Now we need to define Schedule for our time window
                     if (scheduler == null)
                     {
                         if (_starts[i][j] < instance.StartTime)
@@ -64,9 +83,9 @@ namespace TestSortingProblem.Structures
                         }
                         break;
                     }
-                    if (!scheduler.CanFit(length, null, out schedulerInstance, out _))
+                    if (!scheduler.CanFit(_starts[i][j], length, null, out schedulerInstance, out _))
                         continue;
-                    if (_starts[i][j] < instance.StartTime)
+                    if (ends - instance.StartTime -1 < length)
                     {
                         instance.ResourceIndex = i;
                         instance.Place = j;

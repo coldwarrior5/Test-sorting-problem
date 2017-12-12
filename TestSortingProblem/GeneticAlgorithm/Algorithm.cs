@@ -19,26 +19,29 @@ namespace TestSortingProblem.GeneticAlgorithm
 			_solution = new Solution(instance.Tests.Length);
 		}
 
-		public override void Solve()
+		public override Solution Solve(bool consolePrint)
 		{
-			
-			throw new System.NotImplementedException();
+			// TODO time control
+			Start(consolePrint);
+			return _solution;
 		}
 
-		protected override void Start()
+		protected override void Start(bool consolePrint)
 		{
 			int i = 0;
 			int howManyDies = (int)(Mortality * PopulationSize);
 			Genome lastBest = new Genome(Instance);
 			//RandomPopulation(ParamSize);
-			ConsoleHandler.PrintBestGenome(BestGenome, i);
+			if(consolePrint)
+				ConsoleHandler.PrintBestGenome(BestGenome, i);
 			while (true) // TODO fix this
 			{
 				lastBest.Copy(BestGenome);
 				Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
 				DetermineBestFitness();
 				if (!(BestGenome.Fitness < lastBest.Fitness)) continue;
-				ConsoleHandler.PrintBestGenome(BestGenome, i);
+				if(consolePrint)
+					ConsoleHandler.PrintBestGenome(BestGenome, i);
 			}
 		}
 		

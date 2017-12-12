@@ -23,9 +23,9 @@ namespace TestSortingProblem.Abstract
 			BestGenome = new Genome(Instance);
 		}
 		
-		public abstract void Solve();
+		public abstract Solution Solve(bool consolePrint);
 
-		protected abstract void Start();
+		protected abstract void Start(bool consolePrint);
 
 		protected abstract void UpdateResult();
 
@@ -203,18 +203,11 @@ namespace TestSortingProblem.Abstract
 
 		protected void RandomPopulation(int paramSize)
 		{
-			/*
-			Parallel.For(0, Population.Length, i =>
+			for(var i = 0; i < Population.Length; i++)
 			{
-				float[] field = new float[paramSize];
-				for (int j = 0; j < paramSize; j++)
-				{
-					field[j] = Functions.NewParamValue(Rand);
-				}
-				Population[i] = new Genome(field);
-			});
+				Population[i] = Genome.RandomGenome(Instance);
+			};
 			DeterminePopulationFitness();
-			*/
 		}
 
 		protected static void RandomPopulation(int paramSize, Genome[] population)
