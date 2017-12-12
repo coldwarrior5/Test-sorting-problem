@@ -1,33 +1,39 @@
-﻿namespace TestSortingProblem.GeneticAlgorithm
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using TestSortingProblem.GeneticAlgorithm;
+using TestSortingProblem.Interfaces;
+using TestSortingProblem.Structures;
+
+namespace TestSortingProblem.Abstract
 {
-	/*
-	public abstract class Ga
+	public abstract class GA : IAlgorithm
 	{
-		private readonly int _testSize;
-		private readonly float[][] _inputs;
-		private readonly float[] _desiredOutput;
+		protected Instance Instance;
+		protected ExecutionTime Time;
 		protected Genome[] Population;
 		protected readonly Genome BestGenome;
 		protected readonly Random Rand;
 
-		protected Ga(float[][] inputs, float[] desiredOutputs)
+		protected GA(Instance structure, ExecutionTime time)
 		{
-			if(inputs.Length != desiredOutputs.Length)
-				throw new Exception("Number of inputs is not equal to number of outputs");
-			_testSize = inputs.Length;
-			_inputs = inputs;
-			_desiredOutput = desiredOutputs;
+			Instance = structure;
+			Time = time;
 			Rand = new Random();
-			BestGenome = new Genome(new float[]{}, float.MaxValue);
+			BestGenome = new Genome(Instance);
 		}
+		
+		public abstract void Solve();
 
-		public abstract Genome Start();
+		protected abstract void Start();
+
+		protected abstract void UpdateResult();
 
 		protected void DeterminePopulationFitness()
 		{
 			object syncObject = new object();
 
-			Parallel.ForEach(Population, ()=> new Genome(new float[]{}, float.MaxValue), (genome, loopState, localState) =>
+			Parallel.ForEach(Population, () => new Genome(Instance), (genome, loopState, localState) =>
 			{
 				DetermineGenomeFitness(ref genome);
 				return genome.Fitness < localState.Fitness ? genome : localState;
@@ -36,12 +42,12 @@
 			{
 				lock (syncObject)
 				{
-					if(localState.Fitness < BestGenome.Fitness)
+					if (localState.Fitness < BestGenome.Fitness)
 						BestGenome.Copy(localState);
-				} 
+				}
 			});
 		}
-		
+
 		protected void DetermineBestFitness()
 		{
 			object syncObject = new object();
@@ -49,26 +55,20 @@
 			{
 				lock (syncObject)
 				{
-					if(t.Fitness < BestGenome.Fitness)
+					if (t.Fitness < BestGenome.Fitness)
 						BestGenome.Copy(t);
 				}
 			}
 		}
 
-        protected void DetermineGenomeFitness(ref Genome genome)
+		protected static void DetermineGenomeFitness(ref Genome genome)
 		{
-			float[] givenOutput = new float[_testSize];
-			var gene = genome.Genes;
-			Parallel.For(0, _testSize, i =>
-			{
-				givenOutput[i] = Functions.F1(_inputs[i][0], _inputs[i][1], gene);
-			});
-			genome.Fitness = FitnessFunctions.Fitness1(_desiredOutput, givenOutput);
+			genome.Fitness = genome.FirstStart() - genome.LastEnd() + 1;
 		}
 
 		protected void Crossover(Genome first, Genome second, ref Genome child)
 		{
-			int which =Rand.Next(0, 4);
+			int which = Rand.Next(0, 4);
 			switch (which)
 			{
 				case 0:
@@ -92,10 +92,10 @@
 		protected int RouletteWheelSelection(Random rand)
 		{
 			double totalFitness = 0;
-
+			
 			foreach (Genome t in Population)
 			{
-				totalFitness += 1.0/t.Fitness;
+				totalFitness += 1.0 / t.Fitness;
 			}
 			double value = rand.NextDouble() * totalFitness;
 			for (int i = 0; i < Population.Length; i++)
@@ -116,7 +116,7 @@
 			return totalFitness;
 		}
 
-			protected void Mutation(ref Genome gene, int index)
+		protected void Mutation(ref Genome gene, int index)
 		{
 			int which = Rand.Next(0, 2);
 			switch (which)
@@ -139,7 +139,6 @@
 			}
 		}
 
-		// ReSharper disable once RedundantAssignment
 		protected static void Order(List<Genome> order)
 		{
 			Genome temp;
@@ -204,6 +203,7 @@
 
 		protected void RandomPopulation(int paramSize)
 		{
+			/*
 			Parallel.For(0, Population.Length, i =>
 			{
 				float[] field = new float[paramSize];
@@ -214,10 +214,12 @@
 				Population[i] = new Genome(field);
 			});
 			DeterminePopulationFitness();
+			*/
 		}
 
 		protected static void RandomPopulation(int paramSize, Genome[] population)
 		{
+			/*
 			Random rand = new Random();
 			Parallel.For(0, population.Length, i =>
 			{
@@ -228,6 +230,7 @@
 				}
 				population[i] = new Genome(field);
 			});
+			*/
 		}
 	}
 
@@ -235,15 +238,18 @@
 	{
 		public static void DiscreteRecombination(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
-			firstChild.Fitness = Single.MaxValue;
+			firstChild.Fitness = int.MaxValue;
+			/*
 			for (int i = 0; i < firstChild.Genes.Length; i++)
 			{
 				firstChild.Genes[i] = rand.NextDouble() > 0.5 ? firstParent.Genes[i] : secondParent.Genes[i];
 			}
+			*/
 		}
 
 		public static void SimpleArithmeticRecombination(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
+			/*
 			int location = rand.Next(0, firstChild.Genes.Length);
 			firstChild.Copy(firstParent);
 			firstChild.Fitness = Single.MaxValue;
@@ -251,28 +257,28 @@
 			{
 				firstChild.Genes[i] = Average(firstParent.Genes[i], secondParent.Genes[i]);
 			}
+			*/
 		}
 
 		public static void SingleArithmeticRecombination(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
+			/*
 			int location = rand.Next(0, firstChild.Genes.Length);
 			firstChild.Copy(firstParent);
 			firstChild.Fitness = Single.MaxValue;
 			firstChild.Genes[location] = Average(firstParent.Genes[location], secondParent.Genes[location]);
+			*/
 		}
 
 		public static void WholeArithmeticRecombination(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
+			/*
 			firstChild.Fitness = Single.MaxValue;
 			for (int i = 0; i < firstParent.Genes.Length; i++)
 			{
 				firstChild.Genes[i] = Average(firstParent.Genes[i], secondParent.Genes[i]);
 			}
-		}
-
-		private static float Average(float first, float second)
-		{
-			return first + (second - first) / 2;
+			*/
 		}
 	}
 
@@ -280,29 +286,34 @@
 	{
 		public static void SimpleMutation(ref Genome gene, int index, Random rand)
 		{
-			gene.Genes[index] = Functions.NewParamValue(rand);
+			
+			//gene.Genes[index] = Functions.NewParamValue(rand);
+			
 		}
 
 		public static void BoundaryMutation(ref Genome gene, int index, Random rand)
 		{
-			gene.Genes[index] = rand.Next(0, 2) > 0 ? Functions.MaxValue : Functions.MinValue;
+			//gene.Genes[index] = rand.Next(0, 2) > 0 ? Functions.MaxValue : Functions.MinValue;
 		}
 
 		public static void SlightMutation(ref Genome gene, int index, Random rand)
 		{
+			/*
 			float delta = Functions.NewParamValue(rand);
 			float subtractDelta = (gene.Genes[index] - delta) % (Functions.MaxValue - Functions.MinValue) + Functions.MinValue;
 			float addDelta = (gene.Genes[index] + delta) % (Functions.MaxValue - Functions.MinValue) + Functions.MinValue;
 			gene.Genes[index] = rand.Next(0, 2) > 0 ? addDelta : subtractDelta;
+			*/
 		}
 
 		public static void SwitchPlaces(ref Genome gene, int index, Random rand)
 		{
+			/*
 			int index2 = rand.Next(0, gene.Genes.Length);
 			float temp = gene.Genes[index2];
 			gene.Genes[index2] = gene.Genes[index];
 			gene.Genes[index] = temp;
+			*/
 		}
 	}
-	*/
 }

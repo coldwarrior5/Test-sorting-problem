@@ -20,7 +20,8 @@ namespace TestSortingProblem.Handlers
         
         private readonly FileHandler _fileHandler;
         private Test[] _tests;
-        private string[] _machines;
+	    private string[] _testList;
+		private string[] _machines;
         private string[]_resources;
         private int[] _resourcesCount;
         
@@ -49,7 +50,7 @@ namespace TestSortingProblem.Handlers
                 ParseLine(data[i], i + 1);
             }
             CheckParameters();
-            return new Instance(_tests, _machines, _resources, _resourcesCount);
+            return new Instance(_tests, _testList, _machines, _resources, _resourcesCount);
         }
 
 	    public void FormatAndSaveResult(Solution result)
@@ -65,7 +66,7 @@ namespace TestSortingProblem.Handlers
 	        int[] times = input.GetTimes();
 	        
 	        for (var i = 0; i < input.Size; i++)
-	            result[i] = "'" + tests[i] + "'," + times[i].ToString() + ",'" + machines[i];
+	            result[i] = "'" + tests[i] + "'," + times[i] + ",'" + machines[i];
 		    return result;
 	    }
 
@@ -100,6 +101,7 @@ namespace TestSortingProblem.Handlers
                 var success = int.TryParse(splits[splits.Length - 1], out _numTests);
                 if(!success)
                     ErrorHandler.TerminateExecution(ErrorCode.UndefinedNumberOfTests);
+				_testList = new string[_numTests];
                 _tests = new Test[_numTests];
             }
             else if (line.Contains(ResourcesInFile))
@@ -156,8 +158,8 @@ namespace TestSortingProblem.Handlers
             else 
                 ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define resources.");
             
-            
             _tests[_iTests++] = new Test(testName, testDuration, machines, resources);
+	        _testList[_iTests] = testName;
         }
 
         private void ParseMachine(string line)

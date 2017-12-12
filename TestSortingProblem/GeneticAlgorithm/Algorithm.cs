@@ -1,9 +1,13 @@
-﻿using TestSortingProblem.Abstract;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using TestSortingProblem.Abstract;
+using TestSortingProblem.Handlers;
 using TestSortingProblem.Structures;
 
 namespace TestSortingProblem.GeneticAlgorithm
 {
-	public class Algorithm : AlgorithmBuilder
+	public class Algorithm : GA
 	{
 		private const double Mortality = 0.5;
 		private const int PopulationSize = 100;
@@ -21,39 +25,30 @@ namespace TestSortingProblem.GeneticAlgorithm
 			throw new System.NotImplementedException();
 		}
 
-		protected override void Iterate()
+		protected override void Start()
 		{
-			/*
 			int i = 0;
-			int howManyDies = (int)(_data.Mortality * _data.PopulationSize);
-			Genome lastBest = new Genome(null);
-			RandomPopulation(Functions.ParamSize);
-			Console.Write(i + " iteration. Current best: ");
-			Program.PrintParameters(BestGenome.Genes);
-			Console.WriteLine("with fitness: " + BestGenome.Fitness.ToString("G10"));
-			while (BestGenome.Fitness > _data.MinError && ++i < _data.MaxIterations)
+			int howManyDies = (int)(Mortality * PopulationSize);
+			Genome lastBest = new Genome(Instance);
+			//RandomPopulation(ParamSize);
+			ConsoleHandler.PrintBestGenome(BestGenome, i);
+			while (true) // TODO fix this
 			{
 				lastBest.Copy(BestGenome);
 				Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
 				DetermineBestFitness();
 				if (!(BestGenome.Fitness < lastBest.Fitness)) continue;
-				Console.Write(i + " iteration. Current best: ");
-				Program.PrintParameters(BestGenome.Genes);
-				Console.WriteLine("with fitness: " +  BestGenome.Fitness.ToString("G10"));
+				ConsoleHandler.PrintBestGenome(BestGenome, i);
 			}
-			return BestGenome;
-			 */
-			throw new System.NotImplementedException();
 		}
 		
 		private void ThreeTournament(int index)
 		{
-			/*
 			Random rnd = new Random(index);
 			List<int> choices = new List<int>(3);
 			while (true)
 			{
-				int randNum = rnd.Next(1, _data.PopulationSize);
+				int randNum = rnd.Next(1, PopulationSize);
 				if (choices.Contains(randNum)) continue;
 				choices.Add(randNum);
 				if(choices.Count == 3)
@@ -67,26 +62,25 @@ namespace TestSortingProblem.GeneticAlgorithm
 				order.Add(choice);
 			}
 
-			Genome temp = new Genome(order[2].Genes);
+			Genome temp = new Genome(Instance);
 			Order(order);
 			temp.Copy(order[2]);
 
 			Crossover(order[0], order[1], ref temp);
-			for (int i = 0; i < temp.Genes.Length; i++)
+			for (int i = 0; i < temp.Size; i++)
 			{
-				if (Rand.NextDouble() < _data.MutationProbability)
+				if (Rand.NextDouble() < MutationProbability)
 					Mutation(ref temp, i);
 			}
 			DetermineGenomeFitness(ref temp);
 			order[2].Copy(temp);
-			*/
 		}
 
-		protected override void UpdateResult(Solution results)
+		protected override void UpdateResult()
 		{
-			_solution.SetTests(results.GetTests());
-			_solution.SetMachines(results.GetMachines());
-			_solution.SetTimes(results.GetTimes());
+			_solution.SetTests(Instance.TestList);
+			_solution.SetMachines(BestGenome.GetMachines());
+			_solution.SetTimes(BestGenome.GetStartingTimes());
 		}
 	}
 }

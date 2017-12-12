@@ -12,35 +12,36 @@ namespace TestSortingProblem.GeneticAlgorithm
 
         private Scheduler[] _machineSchedulers;
         private Scheduler[] _resourceSchedulers;
-        public int Fitness { get; }
+	    public int Fitness;
 
-        public Genome(int size, string[] machinesList, string[] resourcesList, int[] resourcesCountList)
+        public Genome(Instance instance)
         {
-            Size = size;
-            InitArrays(machinesList, resourcesList, resourcesCountList);
+            Size = instance.Tests.Length;
+            InitArrays(instance);
         }
 
-        public Genome(int[] startingTimes, int[] endingTimes, string[] machines, string[] machinesList, string[] resourcesList, int[] resourcesCountList)
+        public Genome(int[] startingTimes, int[] endingTimes, string[] machines, Instance instance)
         {
+	        Size = instance.Tests.Length;
             var startingLength = startingTimes.Length;
             var endingLength = endingTimes.Length;
             var machinesLength = machines.Length;
-            if (endingLength != startingLength || endingLength != machinesLength)
+            if (Size != startingLength || Size != machinesLength || Size != endingLength)
                 throw new ArgumentException("The arrays must be of the same size");
 
             Size = startingLength;
-            InitArrays(machinesList, resourcesList, resourcesCountList);
+            InitArrays(instance);
             SetMachines(machines);
             SetStarts(startingTimes);
             SetEndings(endingTimes);
         }
 
-        private void InitArrays(string[] machines, string[] resources, int[] resourcesCountList)
+        private void InitArrays(Instance instance)
         {
             _machines = new string[Size];
             _startingTimes = new int[Size];
             _endingTimes = new int[Size];
-            InitSchedulers(machines, resources, resourcesCountList);
+            InitSchedulers(instance.Machines, instance.Resources, instance.ResourcesCount);
         }
 
         private void InitSchedulers(string[] machines, string[] resources, int[] resourcesCountList)
@@ -53,7 +54,7 @@ namespace TestSortingProblem.GeneticAlgorithm
                 _resourceSchedulers[i] = new Scheduler(resourcesCountList[i]);
         }
 
-        public int[] GetEndings()
+        public int[] GetEndingTimes()
         {
             return _endingTimes;
         }
@@ -63,7 +64,7 @@ namespace TestSortingProblem.GeneticAlgorithm
             return _machines;
         }
 
-        public int[] GetTimes()
+        public int[] GetStartingTimes()
         {
             return _startingTimes;
         }
@@ -122,6 +123,30 @@ namespace TestSortingProblem.GeneticAlgorithm
             }
         }
 
+	    public int FirstStart()
+	    {
+			int minStart = int.MaxValue;
+
+		    foreach (int start in _startingTimes)
+		    {
+			    if (start < minStart)
+				    minStart = start;
+		    }
+		    return minStart;
+	    }
+
+	    public int LastEnd()
+	    {
+		    int maxEnd = int.MinValue;
+			
+		    foreach (int endingTime in _endingTimes)
+		    {
+			    if (endingTime > maxEnd)
+				    maxEnd = endingTime;
+		    }
+		    return maxEnd;
+	    }
+
         public void Copy(Genome newState)
         {
             if (Size != newState.Size)
@@ -139,5 +164,10 @@ namespace TestSortingProblem.GeneticAlgorithm
                 _resourceSchedulers[i].Copy(newState.CopyResourceeScheduler(i));
             }
         }
+
+	    public static string ParseTimes(Genome genome)
+	    {
+		    return "begins at: " + genome.FirstStart() + ", ends at:" + genome.LastEnd();
+	    }
     }
 }

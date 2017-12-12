@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TestSortingProblem.GeneticAlgorithm;
 
 namespace TestSortingProblem.Handlers
 {
@@ -87,5 +88,15 @@ namespace TestSortingProblem.Handlers
             if(TerminationExpressions.Contains(input))
                 ErrorHandler.TerminateExecution(ErrorCode.UserTermination);
         }
-    }
+
+	    public static void PrintBestGenome(Genome genome, int iter = -1)
+	    {
+			if(iter == -1)
+				Console.Write(iter + " iteration. Current best: ");
+			else
+				Console.Write("Best result is: ");
+		    
+		    Console.WriteLine(Genome.ParseTimes(genome) + ", with fitness: " + genome.Fitness);
+		}
+	}
 }
