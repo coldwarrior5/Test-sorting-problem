@@ -7,7 +7,7 @@ using TestSortingProblem.Structures;
 
 namespace TestSortingProblem.Abstract
 {
-	public abstract class GA : IAlgorithm
+	public abstract class Ga : IAlgorithm
 	{
 		protected Instance Instance;
 		protected ExecutionTime Time;
@@ -15,7 +15,7 @@ namespace TestSortingProblem.Abstract
 		protected readonly Genome BestGenome;
 		protected readonly Random Rand;
 
-		protected GA(Instance structure, ExecutionTime time)
+		protected Ga(Instance structure, ExecutionTime time)
 		{
 			Instance = structure;
 			Time = time;
@@ -201,12 +201,12 @@ namespace TestSortingProblem.Abstract
 			}
 		}
 
-		protected void RandomPopulation(int paramSize)
+		protected void RandomPopulation()
 		{
 			for(var i = 0; i < Population.Length; i++)
 			{
 				Population[i] = Genome.RandomGenome(Instance);
-			};
+			}
 			DeterminePopulationFitness();
 		}
 

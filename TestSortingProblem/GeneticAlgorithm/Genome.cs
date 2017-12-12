@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using TestSortingProblem.Handlers;
 using TestSortingProblem.Structures;
 
 namespace TestSortingProblem.GeneticAlgorithm
@@ -58,31 +59,59 @@ namespace TestSortingProblem.GeneticAlgorithm
             _machineSchedulers = new Scheduler[machines.Length];
             _resourceSchedulers = new Scheduler[resources.Length];
             for (var i = 0; i < machines.Length; i++)
-                _machineSchedulers[i] = new Scheduler(1);
+                _machineSchedulers[i] = new Scheduler(1, machines[i]);
             for (var i = 0; i < resources.Length; i++)
-                _resourceSchedulers[i] = new Scheduler(resourcesCountList[i]);
+                _resourceSchedulers[i] = new Scheduler(resourcesCountList[i], resources[i]);
         }
 
-        public bool FindSchedule(int index)
+        private bool FindSchedule(int index)
         {
             Schedule tempSchedule;
             Schedule tempDependancySchedule;
-            var success = false;
-            var length = _instance.Tests[index].Length;
-            
-            foreach (Scheduler t in _machineSchedulers)
-            {
-                if (t.CanFit(length, _resourceSchedulers[index], out tempSchedule,
-                    out tempDependancySchedule))
-                {
-                    success = true;
-                }
-                if (tempSchedule.StartTime >= _instanceSchedule.StartTime) continue;
-                _instanceSchedule.Copy(tempSchedule);
-                _dependencySchedule.Copy(tempDependancySchedule);
+            bool success = false;
+	        Test chosenTest = _instance.Tests[index];
+            int length = chosenTest.Length;
+	        int machineIndex = -1;
+	        int resourceIndex = -1;
+
+			for (int i = 0; i < _machineSchedulers.Length; i++)
+			{
+				if (chosenTest.Machines.Count != 0 && !chosenTest.Machines.Contains(_machineSchedulers[i].Name))
+					continue;
+
+				if (chosenTest.Resources.Count == 0)
+				{
+					if (!_machineSchedulers[i].CanFit(length, null, out tempSchedule, out _)) continue;
+					success = true;
+					machineIndex = i;
+					if (tempSchedule.StartTime >= _instanceSchedule.StartTime) continue;
+					_instanceSchedule.Copy(tempSchedule);
+					_dependencySchedule = null;
+				}
+				else
+				{
+					for (int j = 0; j < _resourceSchedulers.Length; i++)
+					{
+						if (!chosenTest.Resources.Contains(_resourceSchedulers[j].Name)) continue;
+
+						if (!_machineSchedulers[i].CanFit(length, _resourceSchedulers[j], out tempSchedule, out tempDependancySchedule)) continue;
+						success = true;
+
+						machineIndex = i;
+						resourceIndex = j;
+						if (tempSchedule.StartTime >= _instanceSchedule.StartTime) continue;
+						_instanceSchedule.Copy(tempSchedule);
+						_dependencySchedule?.Copy(tempDependancySchedule);
+					}
+				}
             }
 
-            _machineSchedulers[index].TryAdd(length, _instanceSchedule, _resourceSchedulers[index], _dependencySchedule);
+	        Scheduler dependency = resourceIndex != -1 ? _resourceSchedulers[resourceIndex] : null;
+
+            _machineSchedulers[machineIndex].Add(length, _instanceSchedule, dependency, _dependencySchedule);
+	        _machines[index] = _machineSchedulers[machineIndex].Name;
+	        _startingTimes[index] = _instanceSchedule.StartTime;
+	        _endingTimes[index] = _instanceSchedule.StartTime + length;
             
             return success;
         }
@@ -109,7 +138,7 @@ namespace TestSortingProblem.GeneticAlgorithm
         
         public Scheduler CopyMachineScheduler(int index)
         {
-            var newMachineScheduler = new Scheduler(_machineSchedulers[index].ResourceCount);
+            var newMachineScheduler = new Scheduler(_machineSchedulers[index].ResourceCount, _machineSchedulers[index].Name);
             newMachineScheduler.Copy(_machineSchedulers[index]);
             return newMachineScheduler;
         }
@@ -121,7 +150,7 @@ namespace TestSortingProblem.GeneticAlgorithm
         
         public Scheduler CopyResourceeScheduler(int index)
         {
-            var newResourceScheduler = new Scheduler(_resourceSchedulers[index].ResourceCount);
+            var newResourceScheduler = new Scheduler(_resourceSchedulers[index].ResourceCount, _resourceSchedulers[index].Name);
             newResourceScheduler.Copy(_resourceSchedulers[index]);
             return newResourceScheduler;
         }

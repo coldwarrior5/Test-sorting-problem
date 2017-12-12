@@ -7,11 +7,12 @@ using TestSortingProblem.Structures;
 
 namespace TestSortingProblem.GeneticAlgorithm
 {
-	public class Algorithm : GA
+	public class Algorithm : Ga
 	{
 		private const double Mortality = 0.5;
 		private const int PopulationSize = 100;
 		private const double MutationProbability = 0.01;
+		private const double MaxNoChange = 10000;
 		private Solution _solution;
 		
 		public Algorithm(Instance instance, ExecutionTime time) : base(instance, time)
@@ -29,17 +30,19 @@ namespace TestSortingProblem.GeneticAlgorithm
 		protected override void Start(bool consolePrint)
 		{
 			int i = 0;
+			int fromLastChange = 0;
 			int howManyDies = (int)(Mortality * PopulationSize);
 			Genome lastBest = new Genome(Instance);
 			//RandomPopulation(ParamSize);
 			if(consolePrint)
 				ConsoleHandler.PrintBestGenome(BestGenome, i);
-			while (true) // TODO fix this
+			while (fromLastChange < MaxNoChange)
 			{
 				lastBest.Copy(BestGenome);
 				Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
 				DetermineBestFitness();
 				if (!(BestGenome.Fitness < lastBest.Fitness)) continue;
+				fromLastChange++;
 				if(consolePrint)
 					ConsoleHandler.PrintBestGenome(BestGenome, i);
 			}

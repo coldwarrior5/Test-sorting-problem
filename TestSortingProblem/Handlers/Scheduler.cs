@@ -1,18 +1,21 @@
 using System;
 using System.Collections.Generic;
+using TestSortingProblem.Structures;
 
-namespace TestSortingProblem.Structures
+namespace TestSortingProblem.Handlers
 {
     public class Scheduler
     {
-        public int ResourceCount { get; }
+	    public readonly string Name;
+		public int ResourceCount { get; }
         public int[] ResourceSize { get; set; }
         private List<int>[] _starts;
         private List<int>[] _ends;
 
-        public Scheduler(int resourceCount)
+        public Scheduler(int resourceCount, string name)
         {
             ResourceCount = resourceCount;
+	        Name = name;
             Init();
         }
 
@@ -39,11 +42,10 @@ namespace TestSortingProblem.Structures
             return true;
         }
         
-        public bool TryAdd(int length, Schedule instance, Scheduler scheduler, Schedule dependency)
+        public void Add(int length, Schedule instance, Scheduler scheduler, Schedule dependency)
         {
             Add(instance, length);
             scheduler?.Add(dependency, length);
-            return true;
         }
 
         public bool CanFit(int length, Scheduler scheduler, out Schedule instance, out Schedule schedulerInstance)
@@ -56,7 +58,7 @@ namespace TestSortingProblem.Structures
         {
             var found = false;
             instance = new Schedule();
-            schedulerInstance = (scheduler is null) ? null : new Schedule();
+            schedulerInstance = scheduler is null ? null : new Schedule();
             
             for (var i = 0; i < ResourceCount; i++)
             {
