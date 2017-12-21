@@ -63,7 +63,7 @@ namespace TestSortingProblem.Abstract
 
 		protected static void DetermineGenomeFitness(ref Genome genome)
 		{
-			genome.Fitness = genome.LastEnd() - genome.FirstStart() - 1;
+			genome.Fitness = genome.LastEnd() - genome.FirstStart();
 		}
 
 		protected void Crossover(Genome first, Genome second, ref Genome child)
