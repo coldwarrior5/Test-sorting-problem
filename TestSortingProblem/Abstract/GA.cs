@@ -63,7 +63,7 @@ namespace TestSortingProblem.Abstract
 
 		protected static void DetermineGenomeFitness(ref Genome genome)
 		{
-			genome.Fitness = genome.FirstStart() - genome.LastEnd() + 1;
+			genome.Fitness = genome.LastEnd() - genome.FirstStart() - 1;
 		}
 
 		protected void Crossover(Genome first, Genome second, ref Genome child)
@@ -201,9 +201,10 @@ namespace TestSortingProblem.Abstract
 			}
 		}
 
-		protected void RandomPopulation()
+		protected void RandomPopulation(int populationSize)
 		{
-			for(var i = 0; i < Population.Length; i++)
+			Population = new Genome[populationSize];
+			for(var i = 0; i < populationSize; i++)
 			{
 				Population[i] = Genome.RandomGenome(Instance);
 			}

@@ -33,7 +33,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 			int fromLastChange = 0;
 			int howManyDies = (int)(Mortality * PopulationSize);
 			Genome lastBest = new Genome(Instance);
-			//RandomPopulation(ParamSize);
+			RandomPopulation(PopulationSize);
 			if(consolePrint)
 				ConsoleHandler.PrintBestGenome(BestGenome, i);
 			while (fromLastChange < MaxNoChange)

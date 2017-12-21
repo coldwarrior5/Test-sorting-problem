@@ -24,6 +24,7 @@ namespace TestSortingProblem.GeneticAlgorithm
         {
             Size = instance.Tests.Length;
             _instance = instance;
+	        Fitness = int.MaxValue;
             _instanceSchedule = new Schedule();
             _dependencySchedule = new Schedule();
             InitArrays(instance);
@@ -66,9 +67,8 @@ namespace TestSortingProblem.GeneticAlgorithm
 
         private bool FindSchedule(int index)
         {
-            Schedule tempSchedule;
-            Schedule tempDependancySchedule;
-            bool success = false;
+	        bool success = false;
+	        _instanceSchedule.StartTime = int.MaxValue;
 	        Test chosenTest = _instance.Tests[index];
             int length = chosenTest.Length;
 	        int machineIndex = -1;
@@ -79,29 +79,30 @@ namespace TestSortingProblem.GeneticAlgorithm
 				if (chosenTest.Machines.Count != 0 && !chosenTest.Machines.Contains(_machineSchedulers[i].Name))
 					continue;
 
+				Schedule tempSchedule;
 				if (chosenTest.Resources.Count == 0)
 				{
 					if (!_machineSchedulers[i].CanFit(length, null, out tempSchedule, out _)) continue;
 					success = true;
-					machineIndex = i;
+					
 					if (tempSchedule.StartTime >= _instanceSchedule.StartTime) continue;
+					machineIndex = i;
 					_instanceSchedule.Copy(tempSchedule);
-					_dependencySchedule = null;
 				}
 				else
 				{
-					for (int j = 0; j < _resourceSchedulers.Length; i++)
+					for (int j = 0; j < _resourceSchedulers.Length; j++)
 					{
 						if (!chosenTest.Resources.Contains(_resourceSchedulers[j].Name)) continue;
 
-						if (!_machineSchedulers[i].CanFit(length, _resourceSchedulers[j], out tempSchedule, out tempDependancySchedule)) continue;
+						if (!_machineSchedulers[i].CanFit(length, _resourceSchedulers[j], out tempSchedule, out var tempDependancySchedule)) continue;
 						success = true;
-
+						
+						if (tempSchedule.StartTime >= _instanceSchedule.StartTime) continue;
 						machineIndex = i;
 						resourceIndex = j;
-						if (tempSchedule.StartTime >= _instanceSchedule.StartTime) continue;
 						_instanceSchedule.Copy(tempSchedule);
-						_dependencySchedule?.Copy(tempDependancySchedule);
+						_dependencySchedule.Copy(tempDependancySchedule);
 					}
 				}
             }
@@ -223,8 +224,12 @@ namespace TestSortingProblem.GeneticAlgorithm
             for (var i = 0; i < newState._machineSchedulers.Length; i++)
             {
                 _machineSchedulers[i].Copy(newState.CopyMachineScheduler(i));
-                _resourceSchedulers[i].Copy(newState.CopyResourceeScheduler(i));
             }
+	        for (var i = 0; i < newState._resourceSchedulers.Length; i++)
+	        {
+				_resourceSchedulers[i].Copy(newState.CopyResourceeScheduler(i));
+			}
+	        Fitness = newState.Fitness;
         }
 
 	    public static string ParseTimes(Genome genome)

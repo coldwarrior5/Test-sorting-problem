@@ -8,7 +8,6 @@ namespace TestSortingProblem.Handlers
     {
 	    public readonly string Name;
 		public int ResourceCount { get; }
-        public int[] ResourceSize { get; set; }
         private List<int>[] _starts;
         private List<int>[] _ends;
 
@@ -21,15 +20,13 @@ namespace TestSortingProblem.Handlers
 
         private void Init()
         {
-            ResourceSize = new int[ResourceCount];
             _starts = new List<int>[ResourceCount];
             _ends = new List<int>[ResourceCount];
             
             for (var i = 0; i < ResourceCount; i++)
             {
-                ResourceSize[i] = 0;
-                _starts[i] = new List<int>();
-                _ends[i] = new List<int>();
+                _starts[i] = new List<int>{0};
+                _ends[i] = new List<int>{0};
             }
         }
 
@@ -62,39 +59,47 @@ namespace TestSortingProblem.Handlers
             
             for (var i = 0; i < ResourceCount; i++)
             {
-                for (var j = 0; j < ResourceSize[i]; j++)
+                for (var j = 1; j < _starts[i].Count + 1; j++)
                 {
+	                var startsAt = _ends[i][j - 1];
+	                var endsAt = j == _starts[i].Count ? int.MaxValue : _starts[i][j];
+
                     // Checks if the Scheduler must respect other Scheduler timeline
-                    if (startTime != -1 && _starts[i][j] < startTime)
+                    if (startTime != -1 && endsAt < startTime)
                         continue;
+
+	                if (startTime > startsAt)
+		                startsAt = startTime;
                     
                     // Now we need to ascertain time window for the Schedule to fit in
-                    var ends = (j == 0) ? 0 : _ends[i][j - 1];
-                    if (_starts[i][j] - ends - 1 < length)
+					if (endsAt - startsAt < length)
                         continue;
                     
                     // Now we need to define Schedule for our time window
                     if (scheduler == null)
                     {
-                        if (_starts[i][j] < instance.StartTime)
+                        if (startsAt < instance.StartTime)
                         {
                             instance.ResourceIndex = i;
-                            instance.Place = j;
-                            instance.StartTime = _starts[i][j];
+                            instance.Place = startsAt == 0 ? 0 : j;
+                            instance.StartTime = startsAt;
                             found = true;
+	                        break;
                         }
-                        break;
-                    }
-                    if (!scheduler.CanFit(_starts[i][j], length, null, out schedulerInstance, out _))
                         continue;
-                    if (ends - instance.StartTime -1 < length)
+                    }
+
+                    if (!scheduler.CanFit(endsAt == int.MaxValue ? -1 : startsAt, length, null, out schedulerInstance, out _))
+                        continue;
+
+                    if (endsAt - schedulerInstance.StartTime >= length)
                     {
                         instance.ResourceIndex = i;
-                        instance.Place = j;
-                        instance.StartTime = Math.Max(_starts[i][j], schedulerInstance.StartTime);
+						instance.Place = startsAt == 0 ? 0 : j;
+						instance.StartTime = Math.Max(startsAt, schedulerInstance.StartTime);
                         found = true;
+	                    break;
                     }
-                    break;
                 }
             }
             return found;
@@ -102,15 +107,19 @@ namespace TestSortingProblem.Handlers
 
         private void Add(Schedule schedule, int length)
         {
-            _starts[schedule.ResourceIndex].Insert(schedule.Place, schedule.StartTime);
+	        if (schedule.StartTime == 0)
+	        {
+				_starts[schedule.ResourceIndex].RemoveAt(0);
+				_ends[schedule.ResourceIndex].RemoveAt(0);
+			}
+
+			_starts[schedule.ResourceIndex].Insert(schedule.Place, schedule.StartTime);
             _ends[schedule.ResourceIndex].Insert(schedule.Place, schedule.StartTime + length);
-            ResourceSize[schedule.ResourceIndex]++;
         }
 
         private void Remove(Scheduler dependecy, Schedule thisSchedule, Schedule dependentSchedule)
         {
             _starts[thisSchedule.ResourceIndex].RemoveAt(thisSchedule.Place);
-            ResourceSize[thisSchedule.ResourceIndex]--;
             dependecy?.Remove(null, dependentSchedule, null);
         }
 
@@ -121,7 +130,6 @@ namespace TestSortingProblem.Handlers
             
             for (var i = 0; i < original.ResourceCount; i++)
             {
-                ResourceSize[i] = original.ResourceSize[i];
                 _starts[i].AddRange(original._starts[i]);
                 _ends[i].AddRange(original._ends[i]);
             }

@@ -124,13 +124,15 @@ namespace TestSortingProblem.Handlers
             if(_iTests >= _numTests)
                 ErrorHandler.TerminateExecution(ErrorCode.TooManyTests);
             
-            var splits = line.Split("'");
-            if (splits[1] != null)
-                testName = splits[1];
-            else
-                ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define test name.");
+            var splits = line.Split(" ");
 
-            splits = line.Split(" ");
+	        if (splits.Length > 1 && splits[1].Contains("'"))
+	        {
+		        var name = splits[1].Split("'");
+		        testName = name[1];
+			}
+            else if(!splits[1].Contains("'"))
+                ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define test name.");
   
             if(splits[2] != null)
             {
@@ -158,8 +160,9 @@ namespace TestSortingProblem.Handlers
             else 
                 ErrorHandler.TerminateExecution(ErrorCode.ImproperLine, "Line " + position + " does not define resources.");
             
-            _tests[_iTests++] = new Test(testName, testDuration, machines, resources);
+            _tests[_iTests] = new Test(testName, testDuration, machines, resources);
 	        _testList[_iTests] = testName;
+	        _iTests++;
         }
 
         private void ParseMachine(string line)
@@ -186,11 +189,11 @@ namespace TestSortingProblem.Handlers
 
         private void CheckParameters()
         {
-            if(_iMachines < _numMachines - 1)
+            if(_iMachines < _numMachines)
                 ErrorHandler.TerminateExecution(ErrorCode.NotEnoughMachines);
-            if(_iTests < _numTests - 1)
+            if(_iTests < _numTests)
                 ErrorHandler.TerminateExecution(ErrorCode.NotEnoughTests);
-            if(_iTests < _numResources - 1)
+            if(_iTests < _numResources)
                 ErrorHandler.TerminateExecution(ErrorCode.NotEnoughResources);
         }
     }

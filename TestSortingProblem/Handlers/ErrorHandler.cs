@@ -4,9 +4,9 @@ namespace TestSortingProblem.Handlers
 {
     public enum ErrorCode
     {
+		UserTermination,
         InvalidNumInputParameters,
         InvalidInputParameter,
-        UserTermination,
         NoSuchFile,
         UndefinedNumberOfTests,
         UndefinedNumberOfMachines,
