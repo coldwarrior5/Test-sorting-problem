@@ -48,7 +48,13 @@ namespace TestSortingProblem.GeneticAlgorithm
 				if(CheckAbortSignal())
 					return;
 				lastBest.Copy(BestGenome);
+
+				// Serial test
+				for(int j = 0; j < howManyDies; j++)
+					ThreeTournament(j);
+				// Parallel implementation
 				//Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
+				
 				DetermineBestFitness();
 				if (!(BestGenome.Fitness < lastBest.Fitness)) continue;
 				fromLastChange++;
@@ -63,7 +69,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 			List<int> choices = new List<int>(3);
 			while (true)
 			{
-				int randNum = rnd.Next(1, PopulationSize);
+				int randNum = rnd.Next(PopulationSize);
 				if (choices.Contains(randNum)) continue;
 				choices.Add(randNum);
 				if(choices.Count == 3)
@@ -82,11 +88,10 @@ namespace TestSortingProblem.GeneticAlgorithm
 			temp.Copy(order[2]);
 
 			Crossover(order[0], order[1], ref temp);
-			for (int i = 0; i < temp.Size; i++)
-			{
-				if (Rand.NextDouble() < MutationProbability)
-					Mutation(ref temp, i);
-			}
+
+			if (Rand.NextDouble() < MutationProbability * temp.Size)
+				Mutation(ref temp);
+			
 			DetermineGenomeFitness(ref temp);
 			order[2].Copy(temp);
 		}

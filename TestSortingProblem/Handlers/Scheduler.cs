@@ -10,6 +10,7 @@ namespace TestSortingProblem.Handlers
 		public int ResourceCount { get; }
         private List<int>[] _starts;
         private List<int>[] _ends;
+        private List<int>[] _tests;
 
         public Scheduler(int resourceCount, string name)
         {
@@ -22,27 +23,29 @@ namespace TestSortingProblem.Handlers
         {
             _starts = new List<int>[ResourceCount];
             _ends = new List<int>[ResourceCount];
+            _tests = new List<int>[ResourceCount];
             
             for (var i = 0; i < ResourceCount; i++)
             {
                 _starts[i] = new List<int>{0};
                 _ends[i] = new List<int>{0};
+                _tests[i] = new List<int>();
             }
         }
 
-        public bool TryAdd(int length, Scheduler scheduler = null)
+        public bool TryAdd(int length, int test, Scheduler scheduler = null)
         {
             if (!CanFit(length, scheduler, out var our, out var another)) return false;
             
-            Add(our, length);
-            scheduler?.Add(another, length);
+            Add(our, test, length);
+            scheduler?.Add(another, test, length);
             return true;
         }
         
-        public void Add(int length, Schedule instance, Scheduler scheduler, Schedule dependency)
+        public void Add(int length, int test, Schedule instance, Scheduler scheduler, Schedule dependency)
         {
-            Add(instance, length);
-            scheduler?.Add(dependency, length);
+            Add(instance, test, length);
+            scheduler?.Add(dependency, test, length);
         }
 
         public bool CanFit(int length, Scheduler scheduler, out Schedule instance, out Schedule schedulerInstance)
@@ -105,7 +108,7 @@ namespace TestSortingProblem.Handlers
             return found;
         }
 
-        private void Add(Schedule schedule, int length)
+        private void Add(Schedule schedule, int test, int length)
         {
 	        if (schedule.StartTime == 0)
 	        {
@@ -115,12 +118,45 @@ namespace TestSortingProblem.Handlers
 
 			_starts[schedule.ResourceIndex].Insert(schedule.Place, schedule.StartTime);
             _ends[schedule.ResourceIndex].Insert(schedule.Place, schedule.StartTime + length);
+            _tests[schedule.ResourceIndex].Insert(schedule.Place, test);
         }
 
-        private void Remove(Scheduler dependecy, Schedule thisSchedule, Schedule dependentSchedule)
+        public bool Remove(Test test)
         {
-            _starts[thisSchedule.ResourceIndex].RemoveAt(thisSchedule.Place);
-            dependecy?.Remove(null, dependentSchedule, null);
+            for(int i = 0; i < ResourceCount; i++)
+            {
+                for(int j = 0; j < _tests[i].Count; j++)
+                {
+                    if(_tests[i][j].Equals(test.Name))
+                    {
+                        _starts[i].RemoveAt(j);
+                        _ends[i].RemoveAt(j);
+                        _tests[i].RemoveAt(j);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public void RemoveAfter(int time)
+        {
+            int removeIndex;
+            for(int i = 0; i < ResourceCount; i++)
+            {
+                removeIndex = _starts[i].Count;
+                for(int j = 0; j < _starts[i].Count; j++)
+                {
+                    if(_starts[i][j] >= time)
+                    {
+                        removeIndex = j;
+                        break;
+                    }
+                }
+                _starts[i].RemoveRange(removeIndex, _starts[i].Count - removeIndex);
+                _ends[i].RemoveRange(removeIndex, _starts[i].Count - removeIndex);
+                _tests[i].RemoveRange(removeIndex, _starts[i].Count - removeIndex);
+            }
         }
 
         public void Copy(Scheduler original)

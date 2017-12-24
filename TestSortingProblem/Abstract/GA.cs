@@ -29,6 +29,16 @@ namespace TestSortingProblem.Abstract
 
 		protected abstract void UpdateResult();
 
+		protected void RandomPopulation(int populationSize)
+		{
+			Population = new Genome[populationSize];
+			for(var i = 0; i < populationSize; i++)
+			{
+				Population[i] = Genome.RandomGenome(Instance);
+			}
+			DeterminePopulationFitness();
+		}
+
 		protected void DeterminePopulationFitness()
 		{
 			object syncObject = new object();
@@ -48,6 +58,11 @@ namespace TestSortingProblem.Abstract
 			});
 		}
 
+		protected static void DetermineGenomeFitness(ref Genome genome)
+		{
+			genome.Fitness = genome.LastEnd() - genome.FirstStart();
+		}
+
 		protected void DetermineBestFitness()
 		{
 			object syncObject = new object();
@@ -61,27 +76,19 @@ namespace TestSortingProblem.Abstract
 			}
 		}
 
-		protected static void DetermineGenomeFitness(ref Genome genome)
-		{
-			genome.Fitness = genome.LastEnd() - genome.FirstStart();
-		}
-
 		protected void Crossover(Genome first, Genome second, ref Genome child)
 		{
-			int which = Rand.Next(0, 4);
+			int which = Rand.Next(3);
 			switch (which)
 			{
 				case 0:
-					CrossoverMethods.DiscreteRecombination(first, second, ref child, Rand);
+					CrossoverMethods.UniformLikeCrossover(first, second, ref child, Rand);
 					break;
 				case 1:
-					CrossoverMethods.SimpleArithmeticRecombination(first, second, ref child, Rand);
+					CrossoverMethods.PositionBasedCrossover(first, second, ref child, Rand);
 					break;
 				case 2:
-					CrossoverMethods.SingleArithmeticRecombination(first, second, ref child, Rand);
-					break;
-				case 3:
-					CrossoverMethods.WholeArithmeticRecombination(first, second, ref child, Rand);
+					CrossoverMethods.CycleCrossover(first, second, ref child, Rand);
 					break;
 				default:
 					child = null;
@@ -89,49 +96,19 @@ namespace TestSortingProblem.Abstract
 			}
 		}
 
-		protected int RouletteWheelSelection(Random rand)
+		protected void Mutation(ref Genome gene)
 		{
-			double totalFitness = 0;
-			
-			foreach (Genome t in Population)
-			{
-				totalFitness += 1.0 / t.Fitness;
-			}
-			double value = rand.NextDouble() * totalFitness;
-			for (int i = 0; i < Population.Length; i++)
-			{
-				value -= 1.0 / Population[i].Fitness;
-				if (value <= 0)
-					return i;
-			}
-			// When rounding errors occur, we return the last item's index 
-			return Population.Length - 1;
-		}
-
-		protected double TotalFitness(double[] fitness)
-		{
-			double totalFitness = 0;
-			foreach (double t in fitness)
-				totalFitness += t;
-			return totalFitness;
-		}
-
-		protected void Mutation(ref Genome gene, int index)
-		{
-			int which = Rand.Next(0, 2);
+			int which = Rand.Next(3);
 			switch (which)
 			{
 				case 0:
-					MutationMethods.SimpleMutation(ref gene, index, Rand);
+					MutationMethods.RandomMutation(ref gene, Rand);
 					break;
 				case 1:
-					MutationMethods.BoundaryMutation(ref gene, index, Rand);
+					MutationMethods.SwapMutation(ref gene, Rand);
 					break;
 				case 2:
-					MutationMethods.SlightMutation(ref gene, index, Rand);
-					break;
-				case 3:
-					MutationMethods.SwitchPlaces(ref gene, index, Rand);
+					MutationMethods.ScrambleMutation(ref gene, Rand);
 					break;
 				default:
 					gene = null;
@@ -200,37 +177,11 @@ namespace TestSortingProblem.Abstract
 					break;
 			}
 		}
-
-		protected void RandomPopulation(int populationSize)
-		{
-			Population = new Genome[populationSize];
-			for(var i = 0; i < populationSize; i++)
-			{
-				Population[i] = Genome.RandomGenome(Instance);
-			}
-			DeterminePopulationFitness();
-		}
-
-		protected static void RandomPopulation(int paramSize, Genome[] population)
-		{
-			/*
-			Random rand = new Random();
-			Parallel.For(0, population.Length, i =>
-			{
-				float[] field = new float[paramSize];
-				for (int j = 0; j < paramSize; j++)
-				{
-					field[j] = Functions.NewParamValue(rand);
-				}
-				population[i] = new Genome(field);
-			});
-			*/
-		}
 	}
 
 	public static class CrossoverMethods
 	{
-		public static void DiscreteRecombination(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
+		public static void UniformLikeCrossover(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
 			firstChild.Fitness = int.MaxValue;
 			/*
@@ -241,7 +192,7 @@ namespace TestSortingProblem.Abstract
 			*/
 		}
 
-		public static void SimpleArithmeticRecombination(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
+		public static void PositionBasedCrossover(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
 			/*
 			int location = rand.Next(0, firstChild.Genes.Length);
@@ -254,7 +205,7 @@ namespace TestSortingProblem.Abstract
 			*/
 		}
 
-		public static void SingleArithmeticRecombination(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
+		public static void CycleCrossover(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
 			/*
 			int location = rand.Next(0, firstChild.Genes.Length);
@@ -263,51 +214,28 @@ namespace TestSortingProblem.Abstract
 			firstChild.Genes[location] = Average(firstParent.Genes[location], secondParent.Genes[location]);
 			*/
 		}
-
-		public static void WholeArithmeticRecombination(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
-		{
-			/*
-			firstChild.Fitness = Single.MaxValue;
-			for (int i = 0; i < firstParent.Genes.Length; i++)
-			{
-				firstChild.Genes[i] = Average(firstParent.Genes[i], secondParent.Genes[i]);
-			}
-			*/
-		}
 	}
 
 	public static class MutationMethods
 	{
-		public static void SimpleMutation(ref Genome gene, int index, Random rand)
+		public static void SwapMutation(ref Genome gene, Random rand)
 		{
-			
-			//gene.Genes[index] = Functions.NewParamValue(rand);
-			
+			int firstIndex = rand.Next(gene.Size - 1);
+			int secondIndex = rand.Next(firstIndex + 1, gene.Size);
+
+			gene.SwapPlaces(firstIndex, secondIndex);
 		}
 
-		public static void BoundaryMutation(ref Genome gene, int index, Random rand)
+		public static void RandomMutation(ref Genome gene, Random rand)
 		{
-			//gene.Genes[index] = rand.Next(0, 2) > 0 ? Functions.MaxValue : Functions.MinValue;
+			gene.Randomize(rand);
 		}
 
-		public static void SlightMutation(ref Genome gene, int index, Random rand)
+		public static void ScrambleMutation(ref Genome gene, Random rand)
 		{
-			/*
-			float delta = Functions.NewParamValue(rand);
-			float subtractDelta = (gene.Genes[index] - delta) % (Functions.MaxValue - Functions.MinValue) + Functions.MinValue;
-			float addDelta = (gene.Genes[index] + delta) % (Functions.MaxValue - Functions.MinValue) + Functions.MinValue;
-			gene.Genes[index] = rand.Next(0, 2) > 0 ? addDelta : subtractDelta;
-			*/
-		}
-
-		public static void SwitchPlaces(ref Genome gene, int index, Random rand)
-		{
-			/*
-			int index2 = rand.Next(0, gene.Genes.Length);
-			float temp = gene.Genes[index2];
-			gene.Genes[index2] = gene.Genes[index];
-			gene.Genes[index] = temp;
-			*/
+			int firstIndex = rand.Next(gene.Size - 1);
+			int secondIndex = rand.Next(firstIndex + 1, gene.Size);
+			gene.ScrambleGenes(firstIndex, secondIndex, rand);
 		}
 	}
 }

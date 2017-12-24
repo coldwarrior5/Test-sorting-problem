@@ -109,12 +109,62 @@ namespace TestSortingProblem.GeneticAlgorithm
 
 	        Scheduler dependency = resourceIndex != -1 ? _resourceSchedulers[resourceIndex] : null;
 
-            _machineSchedulers[machineIndex].Add(length, _instanceSchedule, dependency, _dependencySchedule);
+            _machineSchedulers[machineIndex].Add(length, index, _instanceSchedule, dependency, _dependencySchedule);
 	        _machines[index] = _machineSchedulers[machineIndex].Name;
 	        _startingTimes[index] = _instanceSchedule.StartTime;
 	        _endingTimes[index] = _instanceSchedule.StartTime + length;
             
             return success;
+        }
+
+        public bool SwapPlaces(int firstIndex, int secondIndex)
+        {
+            string firstMachine = _machines[firstIndex];
+            Test firstTest = _instance.Tests[firstIndex];
+            Test secondTest = _instance.Tests[secondIndex];
+            
+            RemoveTestFromMachine(firstTest);
+            RemoveTestFromMachine(secondTest);
+
+            if(firstTest.Resources.Count != 0)
+                RemoveTestFromResource(firstTest);
+            if(secondTest.Resources.Count != 0)
+                RemoveTestFromResource(secondTest);    
+            FindSchedule(secondIndex);
+            FindSchedule(firstIndex);
+
+            return !_machines[firstIndex].Equals(firstMachine);
+        }
+
+        public void ScrambleGenes(int firstIndex, int secondIndex, Random rand)
+        {
+            string firstMachine = _machines[firstIndex];
+            for(int i = firstIndex; i <= secondIndex; i++)
+            {
+                Test currentTest = _instance.Tests[i];
+                RemoveTestFromMachine(currentTest);
+                if(currentTest.Resources.Count != 0)
+                    RemoveTestFromResource(currentTest);
+            }
+            int[] randomChoice = Enumerable.Range(0, secondIndex - firstIndex + 1).OrderBy(x => rand.Next()).ToArray();
+            
+            for (int i = 0; i < randomChoice.Length; i++)
+            {
+                FindSchedule(firstIndex + randomChoice[i]);
+            }
+        }
+
+        public void Randomize(Random rand)
+        {
+            int time = rand.Next(Fitness);
+            RemoveTestsAfter(time);
+            for(int i = 0; i < Size; i++)
+            {
+                if(_startingTimes[i] == -1)
+                {
+                    FindSchedule(i);
+                }
+            }
         }
 
         public int[] GetEndingTimes()
@@ -247,6 +297,53 @@ namespace TestSortingProblem.GeneticAlgorithm
                 result.FindSchedule(randomChoice[i]);
             }
             return result;
+        }
+
+        private void RemoveTestFromMachine(Test test)
+        {
+            for(int i = 0; i < _instance.Machines.Length; i++)
+            {
+                if(_machineSchedulers[i].Remove(test))
+                    break;
+            }
+        }
+
+        private void RemoveTestFromResource(Test test)
+        {
+            for(int i = 0; i < _instance.Resources.Length; i++)
+            {
+                if (!test.Resources.Contains(_resourceSchedulers[i].Name)) continue;
+
+                if(_resourceSchedulers[i].Remove(test))
+                    break;
+            }
+        }
+
+        private void RemoveTestsAfter(int time)
+        {
+            for(int i = 0; i < _machineSchedulers.Length; i++)
+            {
+                _machineSchedulers[i].RemoveAfter(time);
+            }
+
+            for(int i = 0; i < _instance.Resources.Length; i++)
+            {
+                _resourceSchedulers[i].RemoveAfter(time);
+            }
+            UpdateArrays(time);
+        }
+
+        private void UpdateArrays(int time)
+        {
+            for(int i = 0; i < Size; i++)
+            {
+                if(_startingTimes[i] >= time)
+                {
+                    _startingTimes[i] = -1;
+                    _endingTimes[i] = -1;
+                    _machines[i] = "";
+                }
+            }
         }
     }
 }
