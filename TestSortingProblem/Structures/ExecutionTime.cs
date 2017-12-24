@@ -52,8 +52,27 @@ namespace TestSortingProblem.Structures
 					correct = false;
 					break;
 			}
-			
 			return correct;
+		}
+
+		public static int Miliseconds(ExecutionTime time)
+		{
+			var timer = -1;
+			switch (time)
+			{
+				case ExecutionTime.OneMinute:
+					timer = 1 * 60 * 1000;
+					break;
+				case ExecutionTime.FiveMinutes:
+					timer = 5 * 60 * 1000;
+					break;
+				case ExecutionTime.Unlimited:
+					timer = 0;
+					break;
+				default:
+					throw new ArgumentException("No such argument");
+			}
+			return timer;
 		}
 	}
 }

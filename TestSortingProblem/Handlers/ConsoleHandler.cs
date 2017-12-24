@@ -94,9 +94,9 @@ namespace TestSortingProblem.Handlers
 			if(iter == -1)
 				Console.Write(iter + " iteration. Current best: ");
 			else
-				Console.Write("Best result is: ");
+				Console.Write("Best result: ");
 		    
-		    Console.WriteLine(Genome.ParseTimes(genome) + ", with fitness: " + genome.Fitness);
+		    Console.WriteLine(Genome.ParseTimes(genome) + ". With fitness: " + genome.Fitness);
 		}
 	}
 }

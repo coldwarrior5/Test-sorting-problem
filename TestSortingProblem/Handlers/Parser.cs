@@ -61,6 +61,9 @@ namespace TestSortingProblem.Handlers
 	    private static string[] FormatData(Solution input)
 	    {
 	        string[] result = new string[input.Size];
+            if (input.GetTests() is null || input.GetMachines() is null || input.GetTimes() is null)
+                return null;
+                
 	        string[] tests = input.GetTests();
 	        string[] machines = input.GetMachines();
 	        int[] times = input.GetTimes();

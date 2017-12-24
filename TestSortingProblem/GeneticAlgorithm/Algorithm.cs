@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using TestSortingProblem.Abstract;
 using TestSortingProblem.Handlers;
 using TestSortingProblem.Structures;
+using System.Threading;
 
 namespace TestSortingProblem.GeneticAlgorithm
 {
@@ -13,6 +14,8 @@ namespace TestSortingProblem.GeneticAlgorithm
 		private const int PopulationSize = 100;
 		private const double MutationProbability = 0.01;
 		private const double MaxNoChange = 10000;
+
+		private bool abort = false;
 		private Solution _solution;
 		
 		public Algorithm(Instance instance, ExecutionTime time) : base(instance, time)
@@ -22,8 +25,12 @@ namespace TestSortingProblem.GeneticAlgorithm
 
 		public override Solution Solve(bool consolePrint)
 		{
-			// TODO time control
-			Start(consolePrint);
+            Thread workerThread = new Thread(() => Start(consolePrint));
+			workerThread.Start();
+
+			SetAbortSignal();
+			workerThread.Join();
+			
 			return _solution;
 		}
 
@@ -38,8 +45,10 @@ namespace TestSortingProblem.GeneticAlgorithm
 				ConsoleHandler.PrintBestGenome(BestGenome, i);
 			while (fromLastChange < MaxNoChange)
 			{
+				if(CheckAbortSignal())
+					return;
 				lastBest.Copy(BestGenome);
-				Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
+				//Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
 				DetermineBestFitness();
 				if (!(BestGenome.Fitness < lastBest.Fitness)) continue;
 				fromLastChange++;
@@ -87,6 +96,20 @@ namespace TestSortingProblem.GeneticAlgorithm
 			_solution.SetTests(Instance.TestList);
 			_solution.SetMachines(BestGenome.GetMachines());
 			_solution.SetTimes(BestGenome.GetStartingTimes());
+		}
+
+		private bool CheckAbortSignal()
+		{
+			return abort;
+		}
+
+		private void SetAbortSignal()
+		{
+			int timeInMiliseconds = StringTime.Miliseconds(Time);
+			if(timeInMiliseconds == 0)
+				return;
+			Thread.Sleep(timeInMiliseconds);
+			abort = true;
 		}
 	}
 }

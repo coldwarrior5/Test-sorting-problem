@@ -24,7 +24,8 @@ namespace TestSortingProblem.Handlers
 
         public void SaveFile(string[] outputBuffer)
         {
-            File.WriteAllLines(_outputFileName, outputBuffer);
+            if(!(outputBuffer is null))
+                File.WriteAllLines(_outputFileName, outputBuffer);
         }
     }
 }

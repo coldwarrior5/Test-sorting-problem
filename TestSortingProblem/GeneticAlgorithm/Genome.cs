@@ -234,7 +234,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 
 	    public static string ParseTimes(Genome genome)
 	    {
-		    return "begins at: " + genome.FirstStart() + ", ends at:" + genome.LastEnd();
+		    return "begins at: " + genome.FirstStart() + ", ends at: " + genome.LastEnd();
 	    }
 
         public static Genome RandomGenome(Instance instance)
