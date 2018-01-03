@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using TestSortingProblem.Abstract;
 using TestSortingProblem.Handlers;
 using TestSortingProblem.Structures;
@@ -15,17 +14,18 @@ namespace TestSortingProblem.GeneticAlgorithm
 		private const double MutationProbability = 0.01;
 		private const double MaxNoChange = 10000;
 
-		private bool abort = false;
-		private Solution _solution;
+		private bool _abort;
+		private readonly Solution _solution;
 		
 		public Algorithm(Instance instance, ExecutionTime time) : base(instance, time)
 		{
+			_abort = false;
 			_solution = new Solution(instance.Tests.Length);
 		}
 
 		public override Solution Solve(bool consolePrint)
 		{
-            Thread workerThread = new Thread(() => Start(consolePrint));
+            var workerThread = new Thread(() => Start(consolePrint));
 			workerThread.Start();
 
 			SetAbortSignal();
@@ -105,7 +105,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 
 		private bool CheckAbortSignal()
 		{
-			return abort;
+			return _abort;
 		}
 
 		private void SetAbortSignal()
@@ -114,7 +114,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 			if(timeInMiliseconds == 0)
 				return;
 			Thread.Sleep(timeInMiliseconds);
-			abort = true;
+			_abort = true;
 		}
 	}
 }

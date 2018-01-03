@@ -57,7 +57,7 @@ namespace TestSortingProblem.Structures
 
 		public static int Miliseconds(ExecutionTime time)
 		{
-			var timer = -1;
+			int timer;
 			switch (time)
 			{
 				case ExecutionTime.OneMinute:

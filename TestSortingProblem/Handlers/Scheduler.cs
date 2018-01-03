@@ -121,19 +121,18 @@ namespace TestSortingProblem.Handlers
             _tests[schedule.ResourceIndex].Insert(schedule.Place, test);
         }
 
-        public bool Remove(Test test)
+        public bool Remove(int testIndex)
         {
-            for(int i = 0; i < ResourceCount; i++)
+            for(var i = 0; i < ResourceCount; i++)
             {
-                for(int j = 0; j < _tests[i].Count; j++)
+                for(var j = 0; j < _tests[i].Count; j++)
                 {
-                    if(_tests[i][j].Equals(test.Name))
-                    {
-                        _starts[i].RemoveAt(j);
-                        _ends[i].RemoveAt(j);
-                        _tests[i].RemoveAt(j);
-                        return true;
-                    }
+                    if (_tests[i][j] != testIndex) continue;
+                    
+                    _starts[i].RemoveAt(j);
+                    _ends[i].RemoveAt(j);
+                    _tests[i].RemoveAt(j);
+                    return true;
                 }
             }
             return false;
