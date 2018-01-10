@@ -108,7 +108,7 @@ namespace TestSortingProblem.Handlers
 	        int[] times = input.GetTimes();
 	        
 	        for (var i = 0; i < input.Size; i++)
-	            result[i] = "'" + tests[i] + "'," + times[i] + ",'" + machines[i];
+	            result[i] = "'" + tests[i] + "'," + times[i] + ",'" + machines[i] + "'.";
 		    return result;
 	    }
 
