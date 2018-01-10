@@ -39,7 +39,6 @@ namespace TestSortingProblem.Handlers
             _iMachines = 0;
             _iResources = 0;
             _iTests = 0;
-
         }
         
         public Instance ParseData()

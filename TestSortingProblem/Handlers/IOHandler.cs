@@ -124,7 +124,7 @@ namespace TestSortingProblem.Handlers
 		    // ReSharper disable once SuggestVarOrType_BuiltInTypes
 			string fullFileName = path;
 			fullFileName += fileName;
-			fullFileName += (extension != "") ? "." + extension : "";
+			fullFileName += extension != "" ? "." + extension : "";
 			return fullFileName;
 		}
 		
@@ -132,7 +132,7 @@ namespace TestSortingProblem.Handlers
 		public static void FilenameFormatter(string fullFileName, out string path, out string fileName, out string extension)
 		{
 			var splits = fullFileName.Split(".");
-			extension = (splits.Length > 1) ? splits[splits.Length - 1] : "";
+			extension = splits.Length > 1 ? splits[splits.Length - 1] : "";
 			
 			splits = fullFileName.Split("/");
 			fileName = splits[splits.Length - 1].Split(".")[0];

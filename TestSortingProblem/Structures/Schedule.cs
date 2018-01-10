@@ -2,15 +2,13 @@ namespace TestSortingProblem.Structures
 {
     public class Schedule
     {
-        public int ResourceIndex;
-        public int Place;
-        public int StartTime;
-        
-        public Schedule()
+	    public int ResourceIndex { get; private set; }
+	    public int Place { get; private set; }
+		public int StartTime { get; private set; }
+
+		public Schedule()
         {
-            ResourceIndex = 0;
-            Place = 0;
-            StartTime = int.MaxValue;
+            ResetSchedule();
         }
 
         public void Copy(Schedule newState)
@@ -19,5 +17,19 @@ namespace TestSortingProblem.Structures
             Place = newState.Place;
             StartTime = newState.StartTime;
         }
+
+	    public void SetSchedule(int resourceIndex, int resourceLocation, int startTime)
+	    {
+			ResourceIndex = resourceIndex;
+		    Place = resourceLocation;
+		    StartTime = startTime;
+		}
+
+	    public void ResetSchedule()
+	    {
+			ResourceIndex = 0;
+		    Place = 0;
+		    StartTime = int.MaxValue;
+		}
     }
 }

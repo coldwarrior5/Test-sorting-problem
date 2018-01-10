@@ -12,15 +12,13 @@ namespace TestSortingProblem.GeneticAlgorithm
 		private const double Mortality = 0.5;
 		private const int PopulationSize = 100;
 		private const double MutationProbability = 0.01;
-		private const double MaxNoChange = 10000;
+		private const double MaxNoChange = 1000;
 
 		private bool _abort;
-		private readonly Solution _solution;
 		
 		public Algorithm(Instance instance, ExecutionTime time) : base(instance, time)
 		{
 			_abort = false;
-			_solution = new Solution(instance.Tests.Length);
 		}
 
 		public override Solution Solve(bool consolePrint)
@@ -30,8 +28,9 @@ namespace TestSortingProblem.GeneticAlgorithm
 
 			SetAbortSignal();
 			workerThread.Join();
-			
-			return _solution;
+
+			Solution solution = new Solution(Structure.TestList, BestGenome.GetStartingTimes(), BestGenome.GetMachines());
+			return solution;
 		}
 
 		protected override void Start(bool consolePrint)
@@ -39,14 +38,13 @@ namespace TestSortingProblem.GeneticAlgorithm
 			int i = 0;
 			int fromLastChange = 0;
 			int howManyDies = (int)(Mortality * PopulationSize);
-			Genome lastBest = new Genome(Instance);
+			Genome lastBest = new Genome(Structure);
 			RandomPopulation(PopulationSize);
 			if(consolePrint)
 				ConsoleHandler.PrintBestGenome(BestGenome, i);
-			while (fromLastChange < MaxNoChange)
+			while (Runnable(fromLastChange))
 			{
-				if(CheckAbortSignal())
-					return;
+				i++;
 				lastBest.Copy(BestGenome);
 
 				// Serial test
@@ -56,9 +54,13 @@ namespace TestSortingProblem.GeneticAlgorithm
 				//Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
 				
 				DetermineBestFitness();
-				if (!(BestGenome.Fitness < lastBest.Fitness)) continue;
-				fromLastChange++;
-				if(consolePrint)
+				if (!(BestGenome.Fitness < lastBest.Fitness))
+				{
+					fromLastChange++;
+					continue;
+				}
+				fromLastChange = 0;
+				if (consolePrint)
 					ConsoleHandler.PrintBestGenome(BestGenome, i);
 			}
 		}
@@ -83,29 +85,24 @@ namespace TestSortingProblem.GeneticAlgorithm
 				order.Add(choice);
 			}
 
-			Genome temp = new Genome(Instance);
+			Genome temp = new Genome(Structure);
 			Order(order);
 			temp.Copy(order[2]);
 
-			Crossover(order[0], order[1], ref temp);
+			//Crossover(order[0], order[1], ref temp);
 
-			if (Rand.NextDouble() < MutationProbability * temp.Size)
+			if (Rand.NextDouble() < MutationProbability * 10)
 				Mutation(ref temp);
 			
 			DetermineGenomeFitness(ref temp);
 			order[2].Copy(temp);
 		}
 
-		protected override void UpdateResult()
+		private bool Runnable(int fromLastChange)
 		{
-			_solution.SetTests(Instance.TestList);
-			_solution.SetMachines(BestGenome.GetMachines());
-			_solution.SetTimes(BestGenome.GetStartingTimes());
-		}
-
-		private bool CheckAbortSignal()
-		{
-			return _abort;
+			if (Time is ExecutionTime.Unlimited)
+				return fromLastChange < MaxNoChange;
+			return !_abort;
 		}
 
 		private void SetAbortSignal()
@@ -115,6 +112,68 @@ namespace TestSortingProblem.GeneticAlgorithm
 				return;
 			Thread.Sleep(timeInMiliseconds);
 			_abort = true;
+		}
+
+		private static void CheckSchedulers(Genome bestGenome, Instance instance)
+		{
+			int[] length = new int[instance.ResourcesCount.Length];
+			int[] counter = new int[instance.ResourcesCount.Length];
+			for (int i = 0; i < counter.Length; i++)
+			{
+				length[i] = 0;
+				counter[i] = 0;
+			}
+
+			for (int i = 0; i < instance.Tests.Length; i++)
+			{
+				for (int j = 0; j < instance.Tests[i].Resources.Count; j++)
+				{
+					int resource = -1;
+					for (int k = 0; k < instance.Resources.Length; k++)
+					{
+						if (instance.Resources[k].Equals(instance.Tests[i].Resources[j]))
+						{
+							resource = k;
+							break;
+						}
+					}
+					length[resource] += instance.Tests[i].Length;
+					counter[resource]++;
+				}
+			}
+
+			for (int i = 0; i < counter.Length; i++)
+				Console.WriteLine("Resource " + (i + 1) + " has " + counter[i] + " tests totaling length of " + length[i]);
+
+			Scheduler[] machines = bestGenome.GetMachineScheduler();
+			for (int i = 0; i < machines.Length; i++)
+			{
+				for (int j = 0; j < machines[i].ResourceCount; j++)
+				{
+					for (int k = 1; k < machines[i].ElementCount; k++)
+					{
+						Schedule first = machines[i].GetSchedule(j, k - 1);
+						Schedule second = machines[i].GetSchedule(j, k);
+						if (second.ResourceIndex - first.Place < 0)
+							Console.WriteLine("Collision between " + first.StartTime + " and " + second.StartTime + " at " + (i + 1) + "machine " + machines[i].Name);
+					}
+				}
+			}
+
+			Scheduler[] resources = bestGenome.GetResourceScheduler();
+			for (int i = 0; i < resources.Length; i++)
+			{
+				for (int j = 0; j < resources[i].ResourceCount; j++)
+				{
+					for (int k = 1; k < resources[i].ElementCount; k++)
+					{
+						Schedule first = resources[i].GetSchedule(j, k - 1);
+						Schedule second = resources[i].GetSchedule(j, k);
+						if (second.ResourceIndex - first.Place < 0)
+							Console.WriteLine("Collision between " + first.StartTime + " and " + second.StartTime + " at " + (i + 1) + "resource " + resources[i].Name);
+					}
+				}
+			}
 		}
 	}
 }

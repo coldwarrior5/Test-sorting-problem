@@ -9,7 +9,7 @@ namespace TestSortingProblem.Abstract
 {
 	public abstract class Ga : IAlgorithm
 	{
-		protected Instance Instance;
+		protected readonly Instance Structure;
 		protected ExecutionTime Time;
 		protected Genome[] Population;
 		protected readonly Genome BestGenome;
@@ -17,25 +17,25 @@ namespace TestSortingProblem.Abstract
 
 		protected Ga(Instance structure, ExecutionTime time)
 		{
-			Instance = structure;
+			Structure = structure;
 			Time = time;
 			Rand = new Random();
-			BestGenome = new Genome(Instance);
+			BestGenome = new Genome(Structure);
 		}
 		
 		public abstract Solution Solve(bool consolePrint);
 
 		protected abstract void Start(bool consolePrint);
 
-		protected abstract void UpdateResult();
-
 		protected void RandomPopulation(int populationSize)
 		{
 			Population = new Genome[populationSize];
-			for(var i = 0; i < populationSize; i++)
+			
+			Parallel.For(0, Population.Length, i =>
 			{
-				Population[i] = Genome.RandomGenome(Instance);
-			}
+				Population[i] = Genome.RandomGenome(Structure);
+			});
+			
 			DeterminePopulationFitness();
 		}
 
@@ -43,7 +43,7 @@ namespace TestSortingProblem.Abstract
 		{
 			object syncObject = new object();
 
-			Parallel.ForEach(Population, () => new Genome(Instance), (genome, loopState, localState) =>
+			Parallel.ForEach(Population, () => new Genome(Structure), (genome, loopState, localState) =>
 			{
 				DetermineGenomeFitness(ref genome);
 				return genome.Fitness < localState.Fitness ? genome : localState;
