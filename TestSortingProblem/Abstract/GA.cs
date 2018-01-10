@@ -39,7 +39,7 @@ namespace TestSortingProblem.Abstract
 			DeterminePopulationFitness();
 		}
 
-		protected void DeterminePopulationFitness()
+		private void DeterminePopulationFitness()
 		{
 			object syncObject = new object();
 
@@ -78,7 +78,8 @@ namespace TestSortingProblem.Abstract
 
 		protected void Crossover(Genome first, Genome second, ref Genome child)
 		{
-			int which = Rand.Next(3);
+			//int which = Rand.Next(3);
+			int which = 2;
 			switch (which)
 			{
 				case 0:
@@ -98,7 +99,8 @@ namespace TestSortingProblem.Abstract
 
 		protected void Mutation(ref Genome gene)
 		{
-			int which = Rand.Next(3);
+			int which = Rand.Next(4);
+			
 			switch (which)
 			{
 				case 0:
@@ -109,6 +111,9 @@ namespace TestSortingProblem.Abstract
 					break;
 				case 2:
 					MutationMethods.ScrambleMutation(ref gene, Rand);
+					break;
+				case 3:
+					MutationMethods.TotalMutation(ref gene, Rand);
 					break;
 				default:
 					gene = null;
@@ -183,36 +188,71 @@ namespace TestSortingProblem.Abstract
 	{
 		public static void UniformLikeCrossover(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
-			firstChild.Fitness = int.MaxValue;
-			/*
-			for (int i = 0; i < firstChild.Genes.Length; i++)
-			{
-				firstChild.Genes[i] = rand.NextDouble() > 0.5 ? firstParent.Genes[i] : secondParent.Genes[i];
-			}
-			*/
+			
 		}
 
 		public static void PositionBasedCrossover(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
-			/*
-			int location = rand.Next(0, firstChild.Genes.Length);
-			firstChild.Copy(firstParent);
-			firstChild.Fitness = Single.MaxValue;
-			for (int i = location; i < firstParent.Genes.Length; i++)
-			{
-				firstChild.Genes[i] = Average(firstParent.Genes[i], secondParent.Genes[i]);
-			}
-			*/
+			
 		}
 
 		public static void CycleCrossover(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
-			/*
-			int location = rand.Next(0, firstChild.Genes.Length);
-			firstChild.Copy(firstParent);
-			firstChild.Fitness = Single.MaxValue;
-			firstChild.Genes[location] = Average(firstParent.Genes[location], secondParent.Genes[location]);
-			*/
+			firstChild.Fitness = int.MaxValue;
+			string[] firstParentMachines = firstParent.GetMachines();
+			string[] secondParentMachines = secondParent.GetMachines();
+			string[] newMachineOrder = Cycle(new List<string[]> { firstParentMachines, secondParentMachines });
+
+			firstChild.SetMachines(newMachineOrder);
+		}
+
+		private static string[] Cycle(List<string[]> machines)
+		{
+			int parentNum = machines.Count;
+			int length = machines[0].Length;
+			string[] indices = new String[length];
+			bool[] available = new bool[length];
+			for (int i = 0; i < length; i++)
+			{
+				available[i] = true;
+			}
+			int index = 0;
+			int parent = parentNum - 1;
+			while (index != length)
+			{
+				var noChange = false;
+				int tempIndex = index;
+				do
+				{
+					var found = false;
+					if (!(indices[tempIndex] is null))
+					{
+						noChange = true;
+						continue;
+					}
+
+					indices[tempIndex] = machines[parent][tempIndex];
+					for (var i = 0; i < length; i++)
+					{
+						if (!machines[parent][i].Equals(machines[parentNum - 1 - parent][tempIndex]) || !available[i]) continue;
+						if(i != index)
+							available[i] = false;
+						tempIndex = i;
+						found = true;
+						break;
+					}
+					// Not found
+					if(!found)
+						tempIndex = index;
+				} while (tempIndex != index);
+				if (!noChange)
+				{
+					available[tempIndex] = false;
+					parent = parentNum - 1 - parent;
+				}
+				index++;
+			}
+			return indices;
 		}
 	}
 
@@ -229,6 +269,11 @@ namespace TestSortingProblem.Abstract
 		public static void RandomMutation(ref Genome gene, Random rand)
 		{
 			gene.Randomize(rand);
+		}
+
+		public static void TotalMutation(ref Genome gene, Random rand)
+		{
+			gene.Randomize(rand, 0);
 		}
 
 		public static void ScrambleMutation(ref Genome gene, Random rand)

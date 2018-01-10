@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using TestSortingProblem.GeneticAlgorithm;
+using TestSortingProblem.Structures;
 
 namespace TestSortingProblem.Handlers
 {
@@ -98,5 +99,46 @@ namespace TestSortingProblem.Handlers
 		    
 		    Console.WriteLine(Genome.ParseTimes(genome) + ". With fitness: " + genome.Fitness);
 		}
-	}
+
+	    public static void CheckResources(Instance instance)
+	    {
+		    Console.WriteLine("\nMinimum length of resource allocation\n");
+
+			int[] length = new int[instance.ResourcesCount.Length];
+		    int[] counter = new int[instance.ResourcesCount.Length];
+		    for (int i = 0; i < counter.Length; i++)
+		    {
+			    length[i] = 0;
+			    counter[i] = 0;
+		    }
+			
+		    for (int i = 0; i < instance.Tests.Length; i++)
+		    {
+			    for (int j = 0; j < instance.Tests[i].Resources.Count; j++)
+			    {
+				    int resource = -1;
+				    for (var k = 0; k < instance.Resources.Length; k++)
+				    {
+					    if (instance.Resources[k].Equals(instance.Tests[i].Resources[j]))
+					    {
+						    resource = k;
+						    break;
+					    }
+				    }
+				    length[resource] += instance.Tests[i].Length;
+				    counter[resource]++;
+			    }
+		    }
+
+		    int totalTime = 0;
+		    for (var i = 0; i < counter.Length; i++)
+		    {
+				if(totalTime < length[i])
+					totalTime = length[i];
+				Console.WriteLine("Resource " + (i + 1) + " has " + counter[i] + " tests, totaling length of " + length[i]);
+			}
+
+		    Console.WriteLine("\nMinimal total time is " + totalTime);
+		}
+    }
 }

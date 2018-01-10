@@ -4,6 +4,7 @@ using TestSortingProblem.Abstract;
 using TestSortingProblem.Handlers;
 using TestSortingProblem.Structures;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace TestSortingProblem.GeneticAlgorithm
 {
@@ -48,10 +49,10 @@ namespace TestSortingProblem.GeneticAlgorithm
 				lastBest.Copy(BestGenome);
 
 				// Serial test
-				for(int j = 0; j < howManyDies; j++)
-					ThreeTournament(j);
+				//for(int j = 0; j < howManyDies; j++)
+					//ThreeTournament(j);
 				// Parallel implementation
-				//Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
+				Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
 				
 				DetermineBestFitness();
 				if (!(BestGenome.Fitness < lastBest.Fitness))
@@ -89,7 +90,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 			Order(order);
 			temp.Copy(order[2]);
 
-			//Crossover(order[0], order[1], ref temp);
+			Crossover(order[0], order[1], ref temp);
 
 			if (Rand.NextDouble() < MutationProbability * 10)
 				Mutation(ref temp);
@@ -114,6 +115,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 			_abort = true;
 		}
 
+		// ReSharper disable once UnusedMember.Local
 		private static void CheckSchedulers(Genome bestGenome, Instance instance)
 		{
 			int[] length = new int[instance.ResourcesCount.Length];

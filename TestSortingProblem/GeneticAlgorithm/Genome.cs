@@ -17,16 +17,11 @@ namespace TestSortingProblem.GeneticAlgorithm
         private Scheduler[] _resourceSchedulers;
 	    public int Fitness;
 
-        private Schedule _instanceSchedule;
-        private List<Schedule> _dependencySchedules;
-
         public Genome(Instance instance)
         {
             Size = instance.Tests.Length;
             _instance = instance;
 	        Fitness = int.MaxValue;
-            _instanceSchedule = new Schedule();
-            _dependencySchedules = new List<Schedule>();
             InitArrays(instance);
         }
 
@@ -67,63 +62,50 @@ namespace TestSortingProblem.GeneticAlgorithm
 
         private void FindSchedule(int index)
         {
-	        List<Scheduler> dependencySchedulers = new List<Scheduler>();
-			_instanceSchedule.ResetSchedule();
-			_dependencySchedules.Clear();
-	        Test chosenTest = _instance.Tests[index];
-            int length = chosenTest.Length;
+	        Schedule machineSchedule = new Schedule();
+			List<Scheduler> dependencySchedulers = new List<Scheduler>();
+	        List<Schedule> dependencySchedules = new List<Schedule>();
+			Test chosenTest = _instance.Tests[index];
 	        int machineIndex = -1;
 
-			for (int i = 0; i < _machineSchedulers.Length; i++)
+			for (var i = 0; i < _machineSchedulers.Length; i++)
 			{
 				if (chosenTest.Machines.Count != 0 && !chosenTest.Machines.Contains(_machineSchedulers[i].Name))
 					continue;
 
-				Schedule tempSchedule;
-				if (chosenTest.Resources.Count == 0)
-				{
-					if (!_machineSchedulers[i].CanFit(length, null, out tempSchedule, out _))
-					{
-						continue;
-					}
-					
-					if (tempSchedule.StartTime >= _instanceSchedule.StartTime) continue;
-					machineIndex = i;
-					_instanceSchedule.Copy(tempSchedule);
-				}
-				else
-				{
-					List<Scheduler> inputDepencencySchedulers = new List<Scheduler>();
-					for (int j = 0; j < _resourceSchedulers.Length; j++)
-					{
-						if (!chosenTest.Resources.Contains(_resourceSchedulers[j].Name)) continue;
-						inputDepencencySchedulers.Add(_resourceSchedulers[j]);
-					}
-					if (!_machineSchedulers[i].CanFit(length, inputDepencencySchedulers, out tempSchedule, out var tempDependancySchedules))
-					{
-						continue;
-					}
-						
-					if (tempSchedule.StartTime >= _instanceSchedule.StartTime) continue;
-					machineIndex = i;
-					_instanceSchedule.Copy(tempSchedule);
-					_dependencySchedules = tempDependancySchedules;
-					dependencySchedulers = inputDepencencySchedulers;
+				FindSchedule(chosenTest, _machineSchedulers[i], out List<Scheduler> tempDependencySchedulers, out Schedule tempMachineSchedule, out List<Schedule> tempDependencySchedules);
+				if (tempMachineSchedule.StartTime >= machineSchedule.StartTime) continue;
 
-				}
-            }
+				machineIndex = i;
+				machineSchedule.Copy(tempMachineSchedule);
+				dependencySchedules = tempDependencySchedules;
+				dependencySchedulers = tempDependencySchedulers;
+				
+			}
 			
-            _machineSchedulers[machineIndex].Add(length, index, _instanceSchedule, dependencySchedulers, _dependencySchedules);
+            _machineSchedulers[machineIndex].Add(chosenTest.Length, index, machineSchedule, dependencySchedulers, dependencySchedules);
 	        _machines[index] = _machineSchedulers[machineIndex].Name;
-	        _startingTimes[index] = _instanceSchedule.StartTime;
-	        _endingTimes[index] = _instanceSchedule.StartTime + length;
+	        _startingTimes[index] = machineSchedule.StartTime;
+	        _endingTimes[index] = machineSchedule.StartTime + chosenTest.Length;
         }
 
-        public bool SwapPlaces(int firstIndex, int secondIndex)
+	    private void FindSchedule(Test chosenTest, Scheduler scheduler, out List<Scheduler> dependencySchedulers, out Schedule machineSchedule, out List<Schedule> dependencySchedules)
+	    {
+		    machineSchedule = new Schedule();
+			dependencySchedulers = new List<Scheduler>();
+			dependencySchedules = new List<Schedule>();
+
+		    foreach (Scheduler t in _resourceSchedulers)
+		    {
+			    if (!chosenTest.Resources.Contains(t.Name)) continue;
+			    dependencySchedulers.Add(t);
+		    }
+			scheduler.CanFit(chosenTest.Length, dependencySchedulers, out machineSchedule, out dependencySchedules);
+	    }
+
+	    public void SwapPlaces(int firstIndex, int secondIndex)
         {
-            string firstMachine = _machines[firstIndex];
-            int firstStart = _startingTimes[firstIndex];
-            Test firstTest = _instance.Tests[firstIndex];
+	        Test firstTest = _instance.Tests[firstIndex];
             Test secondTest = _instance.Tests[secondIndex];
             
             RemoveTestFromMachine(firstIndex);
@@ -135,8 +117,6 @@ namespace TestSortingProblem.GeneticAlgorithm
                 RemoveTestFromResources(secondIndex);    
             FindSchedule(secondIndex);
             FindSchedule(firstIndex);
-
-            return !_machines[firstIndex].Equals(firstMachine) || _startingTimes[firstIndex] != firstStart;
         }
 
         public void ScrambleGenes(int firstIndex, int secondIndex, Random rand)
@@ -156,11 +136,11 @@ namespace TestSortingProblem.GeneticAlgorithm
             }
         }
 
-        public void Randomize(Random rand)
+	    public void Randomize(Random rand, int time = -1)
         {
 	        if (rand == null)
 		        return;
-	        int time = rand.Next(Fitness);
+	        time = time == -1 ? rand.Next(Fitness) : time;
             RemoveTestsAfter(time);
 	        int[] randomChoice = Enumerable.Range(0, Size).OrderBy(x => rand.Next()).ToArray();
 			for (int i = 0; i < Size; i++)
@@ -192,7 +172,7 @@ namespace TestSortingProblem.GeneticAlgorithm
             return _machineSchedulers;
         }
         
-        public Scheduler CopyMachineScheduler(int index)
+        private Scheduler CopyMachineScheduler(int index)
         {
             var newMachineScheduler = new Scheduler(_machineSchedulers[index].ResourceCount, _machineSchedulers[index].Name);
             newMachineScheduler.Copy(_machineSchedulers[index]);
@@ -204,7 +184,7 @@ namespace TestSortingProblem.GeneticAlgorithm
             return _resourceSchedulers;
         }
         
-        public Scheduler CopyResourceeScheduler(int index)
+        private Scheduler CopyResourceeScheduler(int index)
         {
             var newResourceScheduler = new Scheduler(_resourceSchedulers[index].ResourceCount, _resourceSchedulers[index].Name);
             newResourceScheduler.Copy(_resourceSchedulers[index]);
@@ -213,15 +193,38 @@ namespace TestSortingProblem.GeneticAlgorithm
 
         public void SetMachines(string[] machines)
         {
+	        Random rand = new Random();
             if (machines.Length != Size)
                 return;
             for (var i = 0; i < Size; i++)
-            {
-                _machines[i] = machines[i];
-            }
+				_machines[i] = machines[i];
+	        foreach (Scheduler t in _machineSchedulers)
+		        t.Clear();
+	        foreach (Scheduler t in _resourceSchedulers)
+				t.Clear();
+			int[] randomChoice = Enumerable.Range(0, Size).OrderBy(x => rand.Next()).ToArray();
+			int[] machineIndex = new int[Size];
+	        for (int i = 0; i < Size; i++)
+	        {
+		        for (int j = 0; j < _instance.Machines.Length; j++)
+		        {
+			        if (!_machines[i].Equals(_instance.Machines[j])) continue;
+			        machineIndex[i] = j;
+			        break;
+		        }
+		        
+	        }
+			for (int i = 0; i < Size; i++)
+	        {
+		        Test chosenTest = _instance.Tests[randomChoice[i]];
+		        FindSchedule(chosenTest, _machineSchedulers[machineIndex[randomChoice[i]]], out List<Scheduler> dependency, out Schedule machineSchedule, out List<Schedule> dependencySchedules);
+		        _machineSchedulers[machineIndex[randomChoice[i]]].Add(chosenTest.Length, randomChoice[i], machineSchedule, dependency, dependencySchedules);
+		        _startingTimes[randomChoice[i]] = machineSchedule.StartTime;
+		        _endingTimes[randomChoice[i]] = machineSchedule.StartTime + chosenTest.Length;
+			}
         }
 
-        public void SetStarts(int[] startingTimes)
+        private void SetStarts(int[] startingTimes)
         {
             if (startingTimes.Length != Size)
                 return;
@@ -231,7 +234,7 @@ namespace TestSortingProblem.GeneticAlgorithm
             }
         }
         
-        public void SetEndings(int[] endingTimes)
+        private void SetEndings(int[] endingTimes)
         {
             if (endingTimes.Length != Size)
                 return;
@@ -287,23 +290,6 @@ namespace TestSortingProblem.GeneticAlgorithm
 	        Fitness = newState.Fitness;
         }
 
-	    public static string ParseTimes(Genome genome)
-	    {
-		    return "begins at: " + genome.FirstStart() + ", ends at: " + genome.LastEnd();
-	    }
-
-        public static Genome RandomGenome(Instance instance)
-        {
-            Random rand = new Random();
-            Genome result = new Genome(instance);
-            int[] randomChoice = Enumerable.Range(0, result.Size).OrderBy(x => rand.Next()).ToArray();
-            for (int i = 0; i < result.Size; i++)
-            {
-                result.FindSchedule(randomChoice[i]);
-            }
-            return result;
-        }
-
         private void RemoveTestFromMachine(int testIndex)
         {
 	        string machineName = _machines[testIndex];
@@ -355,5 +341,22 @@ namespace TestSortingProblem.GeneticAlgorithm
                 }
             }
         }
-    }
+
+	    public static string ParseTimes(Genome genome)
+	    {
+		    return "begins at: " + genome.FirstStart() + ", ends at: " + genome.LastEnd();
+	    }
+
+	    public static Genome RandomGenome(Instance instance)
+	    {
+		    Random rand = new Random();
+		    Genome result = new Genome(instance);
+		    int[] randomChoice = Enumerable.Range(0, result.Size).OrderBy(x => rand.Next()).ToArray();
+		    for (int i = 0; i < result.Size; i++)
+		    {
+			    result.FindSchedule(randomChoice[i]);
+		    }
+		    return result;
+	    }
+	}
 }

@@ -4,10 +4,12 @@ namespace TestSortingProblem.Handlers
 {
     public enum ErrorCode
     {
-		UserTermination,
+		EarlyExit = -1,
+		UserTermination = 0,
         InvalidNumInputParameters,
         InvalidInputParameter,
         NoSuchFile,
+		NoFileGiven,
         UndefinedNumberOfTests,
         UndefinedNumberOfMachines,
         UndefinedNumberOfResources,
@@ -24,7 +26,13 @@ namespace TestSortingProblem.Handlers
     {
         public static void TerminateExecution(ErrorCode code, string explanation = "")
         {
-            Console.WriteLine("Application stopped.\nReason: " + ErrorMessage(code) + " " + explanation);
+	        if (code < 0)
+	        {
+				Console.WriteLine(explanation);
+		        code = 0;
+	        }
+			else
+				Console.WriteLine("\nApplication stopped.\n  Reason: " + ErrorMessage(code) + " " + explanation);
             Environment.Exit((int) code);
         }
 
@@ -76,7 +84,13 @@ namespace TestSortingProblem.Handlers
                 case ErrorCode.TooManyResources:
                     explanation = "Too many resources according to specification.";
                     break;
-                default:
+	            case ErrorCode.EarlyExit:
+		            explanation = "";
+		            break;
+	            case ErrorCode.NoFileGiven:
+					explanation = "Filename was not defined.";
+		            break;
+	            default:
                     throw new ArgumentException("Such error is non existant.");
             }
             return explanation;

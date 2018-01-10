@@ -20,9 +20,15 @@ namespace TestSortingProblem
 			IIoHandler inputManager = new IoHandler();
 		    var data = inputManager.GetParameters(args);
 		    IParser parser = new Parser(data);
-		    IAlgorithm algorithm = new Algorithm(parser.ParseData(), data.Time);
-		 	Solution solution = algorithm.Solve(true);
-		    parser.FormatAndSaveResult(solution);
+		    Instance instance = parser.ParseData();
+		    if (data.ExecuteAlgorithm)
+		    {
+				IAlgorithm algorithm = new Algorithm(instance, data.Time);
+			    Solution solution = algorithm.Solve(true);
+			    parser.FormatAndSaveResult(solution);
+			}
+		    else
+				ConsoleHandler.CheckResources(instance);
 		}
     }
 }

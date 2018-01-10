@@ -63,7 +63,7 @@ namespace TestSortingProblem.Handlers
         {
             var found = false;
 	        instance = new Schedule();
-	        schedulerInstances = schedulers is null || schedulers.Count == 0 ? null : new List<Schedule>();
+	        schedulerInstances = new List<Schedule>();
 			List<int> hardEnd = new List<int>();
 			
             for (var i = 0; i < ResourceCount; i++)
@@ -124,7 +124,7 @@ namespace TestSortingProblem.Handlers
 
 		                int place = _tests[i][0] == -1 ? 0 : j;
 		                int time = Math.Max(startsAt, schedulerInstance.StartTime);
-						if (schedulerInstances != null && (schedulerInstances.Count <= k || time < schedulerInstances[k].StartTime))
+						if (schedulerInstances.Count <= k || time < schedulerInstances[k].StartTime)
 						{
 			                Tuple<int, int> designation = CheckWithOthers(time, endsAt, schedulerInstances, hardEnd, out int maxTime);
 							found = designation.Item2 - designation.Item1 >= length;
@@ -249,6 +249,21 @@ namespace TestSortingProblem.Handlers
 	            _tests[i].Add(-1);
 			}
         }
+
+	    public void Clear()
+	    {
+			for (int i = 0; i < ResourceCount; i++)
+			{
+				ElementCount = 0;
+				_starts[i].Clear();
+				_ends[i].Clear();
+				_tests[i].Clear();
+				
+				_starts[i].Add(0);
+				_ends[i].Add(0);
+				_tests[i].Add(-1);
+			}
+		}
 
         public void Copy(Scheduler original)
         {
