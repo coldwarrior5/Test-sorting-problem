@@ -7,6 +7,8 @@ namespace TestSortingProblem.Handlers
 {
     public class Parser : IParser
     {
+	    private const string SettingsFile = "settings.ga";
+
         private const string Comment = "%%";
         private const string InstanceInfo = "% ";
         private const string EmptyLine = "";
@@ -17,9 +19,15 @@ namespace TestSortingProblem.Handlers
         private const string TestInFile = "tests";
         private const string MachinesInFile = "machines";
         private const string ResourcesInFile = "resources";
-        
-        private readonly FileHandler _fileHandler;
-        private Test[] _tests;
+
+	    private const string Mortality = "Mortality";
+	    private const string PopulationSize = "Population size";
+	    private const string MutationProbability = "Mutation probability";
+	    private const string MaxIterations = "Maximum wait time between two updates";
+
+		private readonly FileHandler _fileHandler;
+	    private readonly FileHandler _settingsHandler;
+		private Test[] _tests;
 	    private string[] _testList;
 		private string[] _machines;
         private string[]_resources;
@@ -36,6 +44,7 @@ namespace TestSortingProblem.Handlers
         public Parser(InputData data)
         {
             _fileHandler = new FileHandler(data);
+			_settingsHandler = new FileHandler(SettingsFile);
             _iMachines = 0;
             _iResources = 0;
             _iTests = 0;
@@ -52,7 +61,38 @@ namespace TestSortingProblem.Handlers
             return new Instance(_tests, _testList, _machines, _resources, _resourcesCount);
         }
 
-	    public void FormatAndSaveResult(Solution result)
+	    public GaSettings ParseSettings()
+	    {
+			GaSettings settings = new GaSettings();
+		    var data = _settingsHandler.ReadFile();
+			if(data is null)
+				return settings;
+
+			for (var i = 0; i < data.Length; i++)
+		    {
+			    if (ParseLine(data[i], out double result, out GaVariables type))
+			    {
+					switch (type)
+					{
+						case GaVariables.MaxNoChange:
+							settings.SetMaxIter((int)result);
+							break;
+						case GaVariables.Mortality:
+							settings.SetMortality(result);
+							break;
+						case GaVariables.PopulationSize:
+							settings.SetPopulationSize((int)result);
+							break;
+						case GaVariables.MutationProbability:
+							settings.SetMutationProbability(result);
+							break;
+					}
+				}
+			}
+		    return settings;
+	    }
+
+		public void FormatAndSaveResult(Solution result)
 	    {
 			_fileHandler.SaveFile(FormatData(result));
 	    }
@@ -198,5 +238,31 @@ namespace TestSortingProblem.Handlers
             if(_iTests < _numResources)
                 ErrorHandler.TerminateExecution(ErrorCode.NotEnoughResources);
         }
-    }
+
+	    private static bool ParseLine(string line, out double result, out GaVariables settings)
+	    {
+		    settings = GaVariables.MaxNoChange;
+		    result = 0;
+			if (line.StartsWith(Comment) || line is EmptyLine)
+			    return false;
+		    if (line.StartsWith(InstanceInfo))
+		    {
+			    var splits = line.Split(" ");
+			    if (line.Contains(Mortality) || line.Contains(MutationProbability))
+			    {
+				    settings = line.Contains(Mortality) ? GaVariables.Mortality : GaVariables.MutationProbability;
+					var success = double.TryParse(splits[splits.Length - 1], out result);
+				    return success;
+			    }
+			    if (line.Contains(MaxIterations) || line.Contains(PopulationSize))
+			    {
+				    settings = line.Contains(MaxIterations) ? GaVariables.MaxNoChange : GaVariables.PopulationSize;
+					var success = int.TryParse(splits[splits.Length - 1], out var intResult);
+				    result = intResult;
+				    return success;
+			    }
+		    }
+		    return false;
+	    }
+	}
 }

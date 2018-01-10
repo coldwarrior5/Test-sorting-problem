@@ -9,7 +9,12 @@ namespace TestSortingProblem.Handlers
 	    private const string OutputFolder = "Results/";
         private readonly string _inputFileName;
         private readonly string _outputFileName;
-        
+
+	    public FileHandler(string filename)
+	    {
+		    _inputFileName = filename;
+	    }
+
         public FileHandler(InputData data)
         {
 			if (!Directory.Exists(OutputFolder))
@@ -29,7 +34,9 @@ namespace TestSortingProblem.Handlers
         }
         public string[] ReadFile()
         {
-            return File.ReadAllLines(_inputFileName);
+			if(File.Exists(_inputFileName))
+				return File.ReadAllLines(_inputFileName);
+	        return null;
         }
 
         public void SaveFile(string[] outputBuffer)

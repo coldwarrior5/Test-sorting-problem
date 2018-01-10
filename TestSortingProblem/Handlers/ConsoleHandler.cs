@@ -92,7 +92,7 @@ namespace TestSortingProblem.Handlers
 
 	    public static void PrintBestGenome(Genome genome, int iter = -1)
 	    {
-			if(iter == -1)
+			if(iter != -1)
 				Console.Write(iter + " iteration. Current best: ");
 			else
 				Console.Write("Best result: ");

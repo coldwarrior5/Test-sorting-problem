@@ -23,7 +23,8 @@ namespace TestSortingProblem
 		    Instance instance = parser.ParseData();
 		    if (data.ExecuteAlgorithm)
 		    {
-				IAlgorithm algorithm = new Algorithm(instance, data.Time);
+			    GaSettings settings = parser.ParseSettings();
+				IAlgorithm algorithm = new Algorithm(instance, data.Time, settings);
 			    Solution solution = algorithm.Solve(true);
 			    parser.FormatAndSaveResult(solution);
 			}

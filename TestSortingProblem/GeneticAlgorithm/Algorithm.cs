@@ -10,15 +10,13 @@ namespace TestSortingProblem.GeneticAlgorithm
 {
 	public class Algorithm : Ga
 	{
-		private const double Mortality = 0.5;
-		private const int PopulationSize = 100;
-		private const double MutationProbability = 0.01;
-		private const double MaxNoChange = 1000;
+		private readonly GaSettings _settings;
 
 		private bool _abort;
 		
-		public Algorithm(Instance instance, ExecutionTime time) : base(instance, time)
+		public Algorithm(Instance instance, ExecutionTime time, GaSettings settings) : base(instance, time)
 		{
+			_settings = settings;
 			_abort = false;
 		}
 
@@ -38,9 +36,9 @@ namespace TestSortingProblem.GeneticAlgorithm
 		{
 			int i = 0;
 			int fromLastChange = 0;
-			int howManyDies = (int)(Mortality * PopulationSize);
+			int howManyDies = (int)(_settings.Mortality * _settings.PopulationSize);
 			Genome lastBest = new Genome(Structure);
-			RandomPopulation(PopulationSize);
+			RandomPopulation(_settings.PopulationSize);
 			if(consolePrint)
 				ConsoleHandler.PrintBestGenome(BestGenome, i);
 			while (Runnable(fromLastChange))
@@ -48,9 +46,6 @@ namespace TestSortingProblem.GeneticAlgorithm
 				i++;
 				lastBest.Copy(BestGenome);
 
-				// Serial test
-				//for(int j = 0; j < howManyDies; j++)
-					//ThreeTournament(j);
 				// Parallel implementation
 				Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
 				
@@ -72,7 +67,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 			List<int> choices = new List<int>(3);
 			while (true)
 			{
-				int randNum = rnd.Next(PopulationSize);
+				int randNum = rnd.Next(_settings.PopulationSize);
 				if (choices.Contains(randNum)) continue;
 				choices.Add(randNum);
 				if(choices.Count == 3)
@@ -92,7 +87,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 
 			Crossover(order[0], order[1], ref temp);
 
-			if (Rand.NextDouble() < MutationProbability * 10)
+			if (Rand.NextDouble() < _settings.MutationProbability * 10)
 				Mutation(ref temp);
 			
 			DetermineGenomeFitness(ref temp);
@@ -102,7 +97,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 		private bool Runnable(int fromLastChange)
 		{
 			if (Time is ExecutionTime.Unlimited)
-				return fromLastChange < MaxNoChange;
+				return fromLastChange < _settings.MaxIter;
 			return !_abort;
 		}
 

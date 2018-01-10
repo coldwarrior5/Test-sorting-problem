@@ -10,7 +10,7 @@ namespace TestSortingProblem.Abstract
 	public abstract class Ga : IAlgorithm
 	{
 		protected readonly Instance Structure;
-		protected ExecutionTime Time;
+		protected readonly ExecutionTime Time;
 		protected Genome[] Population;
 		protected readonly Genome BestGenome;
 		protected readonly Random Rand;
@@ -78,8 +78,7 @@ namespace TestSortingProblem.Abstract
 
 		protected void Crossover(Genome first, Genome second, ref Genome child)
 		{
-			//int which = Rand.Next(3);
-			int which = 2;
+			int which = Rand.Next(4);
 			switch (which)
 			{
 				case 0:
@@ -90,6 +89,9 @@ namespace TestSortingProblem.Abstract
 					break;
 				case 2:
 					CrossoverMethods.CycleCrossover(first, second, ref child, Rand);
+					break;
+				case 3:
+					CrossoverMethods.UniformCrossover(first, second, ref child, Rand);
 					break;
 				default:
 					child = null;
@@ -186,14 +188,34 @@ namespace TestSortingProblem.Abstract
 
 	public static class CrossoverMethods
 	{
+		public static void UniformCrossover(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
+		{
+			firstChild.Fitness = int.MaxValue;
+			string[] firstParentMachines = firstParent.GetMachines();
+			string[] secondParentMachines = secondParent.GetMachines();
+			string[] newMachineOrder = Uniform(new List<string[]> { firstParentMachines, secondParentMachines }, rand);
+
+			firstChild.SetMachines(newMachineOrder);
+		}
+
 		public static void UniformLikeCrossover(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
-			
+			firstChild.Fitness = int.MaxValue;
+			string[] firstParentMachines = firstParent.GetMachines();
+			string[] secondParentMachines = secondParent.GetMachines();
+			string[] newMachineOrder = UniformLike(new List<string[]> { firstParentMachines, secondParentMachines }, rand);
+
+			firstChild.SetMachines(newMachineOrder);
 		}
 
 		public static void PositionBasedCrossover(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
 		{
-			
+			firstChild.Fitness = int.MaxValue;
+			string[] firstParentMachines = firstParent.GetMachines();
+			string[] secondParentMachines = secondParent.GetMachines();
+			string[] newMachineOrder = PositionAscertaining(new List<string[]> {firstParentMachines, secondParentMachines});
+
+			firstChild.SetMachines(newMachineOrder);
 		}
 
 		public static void CycleCrossover(Genome firstParent, Genome secondParent, ref Genome firstChild, Random rand)
@@ -201,7 +223,7 @@ namespace TestSortingProblem.Abstract
 			firstChild.Fitness = int.MaxValue;
 			string[] firstParentMachines = firstParent.GetMachines();
 			string[] secondParentMachines = secondParent.GetMachines();
-			string[] newMachineOrder = Cycle(new List<string[]> { firstParentMachines, secondParentMachines });
+			string[] newMachineOrder = Cycle(new List<string[]> {firstParentMachines, secondParentMachines});
 
 			firstChild.SetMachines(newMachineOrder);
 		}
@@ -235,14 +257,14 @@ namespace TestSortingProblem.Abstract
 					for (var i = 0; i < length; i++)
 					{
 						if (!machines[parent][i].Equals(machines[parentNum - 1 - parent][tempIndex]) || !available[i]) continue;
-						if(i != index)
+						if (i != index)
 							available[i] = false;
 						tempIndex = i;
 						found = true;
 						break;
 					}
 					// Not found
-					if(!found)
+					if (!found)
 						tempIndex = index;
 				} while (tempIndex != index);
 				if (!noChange)
@@ -251,6 +273,87 @@ namespace TestSortingProblem.Abstract
 					parent = parentNum - 1 - parent;
 				}
 				index++;
+			}
+			return indices;
+		}
+
+		private static string[] PositionAscertaining(List<string[]> machines)
+		{
+			int parentNum = machines.Count;
+			int length = machines[0].Length;
+			string[] indices = new String[length];
+			List<string> combination = new List<string>();
+			List<int> occurences = new List<int>();
+			int parent = 0;
+			for (int i = 0; i < length; i++)
+			{
+				int index = combination.IndexOf(machines[parent][i]);
+				if (index == -1)
+				{
+					combination.Add(machines[parent][i]);
+					occurences.Add(1);
+				}
+				else
+					occurences[index] = occurences[index] + 1;
+
+				index = combination.IndexOf(machines[parentNum - 1 - parent][i]);
+				if (index == -1)
+				{
+					combination.Add(machines[parentNum - 1 - parent][i]);
+					occurences.Add(1);
+				}
+				else
+					occurences[index] = occurences[index] + 1;
+
+			}
+			for (int i = 0; i < length; i++)
+			{
+				int firstindex = combination.IndexOf(machines[parent][i]);
+				int secondindex = combination.IndexOf(machines[parentNum - 1 - parent][i]);
+				if (occurences[firstindex] < occurences[secondindex])
+					indices[i] = machines[parent][i];
+				else
+					indices[i] = machines[parentNum - 1 - parent][i];
+			}
+			return indices;
+		}
+
+		private static string[] Uniform(List<string[]> machines, Random rand)
+		{
+			int parentNum = machines.Count;
+			int length = machines[0].Length;
+			string[] indices = new String[length];
+			int parent = 0;
+			for (int i = 0; i < length; i++)
+			{
+				if (rand.NextDouble() < 0.5)
+					indices[i] = machines[parent][i];
+				else
+					indices[i] = machines[parentNum - 1 - parent][i];
+			}
+			return indices;
+		}
+
+		private static string[] UniformLike(List<string[]> machines, Random rand)
+		{
+			int parentNum = machines.Count;
+			int length = machines[0].Length;
+			string[] indices = new String[length];
+			int parent = 0;
+			for (int i = 0; i < length; i++)
+			{
+				if (machines[parent][i].Equals(machines[parentNum - 1 - parent][i]))
+					indices[i] = machines[parent][i];
+			}
+			for (int i = 0; i < length; i++)
+			{
+				if (indices[i] is null)
+				{
+					if (rand.NextDouble() < 0.5)
+						indices[i] = machines[parent][i];
+					else
+						indices[i] = machines[parentNum - 1 - parent][i];
+				}
 			}
 			return indices;
 		}

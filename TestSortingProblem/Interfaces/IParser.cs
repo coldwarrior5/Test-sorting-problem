@@ -5,6 +5,7 @@ namespace TestSortingProblem.Interfaces
     public interface IParser
     {
         Instance ParseData();
-	    void FormatAndSaveResult(Solution result);
+	    GaSettings ParseSettings();
+		void FormatAndSaveResult(Solution result);
     }
 }
