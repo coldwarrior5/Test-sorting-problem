@@ -63,12 +63,12 @@ namespace TestSortingProblem.Handlers
         {
             var found = false;
 	        instance = new Schedule();
-	        schedulerInstances = new List<Schedule>();
-			List<int> hardEnd = new List<int>();
-			
-            for (var i = 0; i < ResourceCount; i++)
+	        schedulerInstances = null;
+
+			for (var i = 0; i < ResourceCount; i++)
             {
-	            int currentMax = startTime;
+				schedulerInstances = new List<Schedule>();
+				int currentMax = startTime;
 				for (var j = 0; j < _starts[i].Count + 1; j++)
 				{
 					var startsAt = j == 0 ? 0 : _ends[i][j - 1];
@@ -100,8 +100,7 @@ namespace TestSortingProblem.Handlers
                     {
                         if (startsAt < instance.StartTime)
                         {
-							int place = j;
-							instance.SetSchedule(i, place, startsAt);
+							instance.SetSchedule(i, j, startsAt, endsAt);
                             found = true;
 	                        break;
                         }
@@ -112,7 +111,7 @@ namespace TestSortingProblem.Handlers
 	                {
 		                if (!schedulers[k].CanFit(startsAt, length, null, out var schedulerInstance, out _))
 		                {
-							schedulerInstance.SetSchedule(0, 0, int.MinValue);
+							schedulerInstance.SetStartTime(int.MinValue);
 			                found = SchedulerError(schedulerInstance, i, ref currentMax, ref j);
 			                break;
 		                }
@@ -122,37 +121,28 @@ namespace TestSortingProblem.Handlers
 							found = SchedulerError(schedulerInstance, i, ref currentMax, ref j);
 							break;
 		                }
-
-		                int place = j;
-		                int time = Math.Max(startsAt, schedulerInstance.StartTime);
-						if (schedulerInstances.Count <= k || time < schedulerInstances[k].StartTime)
+						
+		                int laterStart = Math.Max(startsAt, schedulerInstance.StartTime);
+						int priorEnd = Math.Min(endsAt, schedulerInstance.EndTime);
+						if (schedulerInstances.Count <= k || laterStart < schedulerInstances[k].StartTime)
 						{
-			                Tuple<int, int> designation = CheckWithOthers(time, endsAt, schedulerInstances, hardEnd);
-							found = designation.Item1 < designation.Item2 && designation.Item2 - designation.Item1 >= length;
+			                Tuple<int, int> designation = CheckWithOthers(laterStart, priorEnd, schedulerInstances);
+							found = designation.Item2 - designation.Item1 >= length;
 							if (!found)
 							{
-								if (endsAt == int.MaxValue)
+								if (j == _starts[i].Count)
 								{
 									j--;
-									currentMax = designation.Item1;
-									schedulerInstances.Clear();
-									hardEnd.Clear();
+									if(designation.Item1 > currentMax)
+										currentMax = designation.Item1;
 								}
+								schedulerInstances.Clear();
 								break;
 							}
-			                instance.SetSchedule(i, place, designation.Item1);
-							schedulerInstance.SetSchedule(schedulerInstance.ResourceIndex, schedulerInstance.Place, designation.Item1);
-							if (schedulerInstances.Count <= k)
-							{
-								schedulerInstances?.Add(schedulerInstance);
-								hardEnd.Add(designation.Item2);
-							}
-							else
-							{
-								schedulerInstances[k].Copy(schedulerInstance);
-								hardEnd[k] = designation.Item2;
-							}
-								
+							instance.SetSchedule(i, j, designation.Item1, designation.Item2);
+							schedulerInstance.SetStartTime(designation.Item1);
+							schedulerInstance.SetEndTime(priorEnd);
+							schedulerInstances.Add(schedulerInstance);
 						}
 	                }
 	                if (found)
@@ -171,21 +161,26 @@ namespace TestSortingProblem.Handlers
 		    return false;
 	    }
 
-	    private static Tuple<int,int> CheckWithOthers(int startsAt, int endsAt, List<Schedule> schedulerInstances, List<int> hardEnd)
+	    private static Tuple<int,int> CheckWithOthers(int startsAt, int endsAt, List<Schedule> schedulerInstances)
 	    {
 		    int absStart = int.MinValue;
 		    int absEnd = int.MaxValue;
-		    for (int i = 0; i < schedulerInstances.Count; i++)
+		    foreach (Schedule t in schedulerInstances)
 		    {
-			    if (schedulerInstances[i].StartTime > absStart)
-				    absStart = schedulerInstances[i].StartTime;
-			    if (hardEnd[i] < absEnd)
-				    absEnd = hardEnd[i];
+			    if (t.StartTime > absStart)
+				    absStart = t.StartTime;
+			    if (t.EndTime < absEnd)
+				    absEnd = t.EndTime;
 		    }
 		    if (startsAt > absStart)
 			    absStart = startsAt;
 		    if (endsAt < absEnd)
 			    absEnd = endsAt;
+		    foreach (Schedule t in schedulerInstances)
+		    {
+			    if (t.StartTime < absStart)
+				    t.SetStartTime(absStart);
+		    }
 			return new Tuple<int, int>(absStart, absEnd);
 	    }
 
@@ -268,7 +263,7 @@ namespace TestSortingProblem.Handlers
 	    public Schedule GetSchedule(int resourceIndex, int place)
 	    {
 			Schedule schedule = new Schedule();
-			schedule.SetSchedule(_starts[resourceIndex][place], _ends[resourceIndex][place], _tests[resourceIndex][place]);
+			schedule.SetSchedule(_starts[resourceIndex][place], _ends[resourceIndex][place], _tests[resourceIndex][place], 0);
 		    return schedule;
 	    }
     }

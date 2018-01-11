@@ -31,16 +31,11 @@ namespace TestSortingProblem.Abstract
 		{
 			Population = new Genome[populationSize];
 			
-			/*
+			
 			Parallel.For(0, Population.Length, i =>
 			{
 				Population[i] = Genome.RandomGenome(Structure);
 			});
-			*/
-			for (int i = 0; i < Population.Length; i++)
-			{
-				Population[i] = Genome.RandomGenome(Structure);
-			}
 			
 			DeterminePopulationFitness();
 		}

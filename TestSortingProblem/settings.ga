@@ -1,5 +1,5 @@
 %% ****  GA settings  ****
-% Mortality 0.4
+% Mortality 0.5
 % Population size 20
 % Mutation probability 0.001
-% Maximum wait time between two updates 40
+% Maximum wait time between two updates 50

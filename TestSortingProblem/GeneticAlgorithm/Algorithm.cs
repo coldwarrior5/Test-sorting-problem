@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using TestSortingProblem.Abstract;
 using TestSortingProblem.Handlers;
 using TestSortingProblem.Structures;
@@ -13,6 +14,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 		private readonly GaSettings _settings;
 
 		private bool _abort;
+		private const double RefreshTime = 0.1;
 		
 		public Algorithm(Instance instance, ExecutionTime time, GaSettings settings) : base(instance, time)
 		{
@@ -39,11 +41,25 @@ namespace TestSortingProblem.GeneticAlgorithm
 			int howManyDies = (int)(_settings.Mortality * _settings.PopulationSize);
 			Genome lastBest = new Genome(Structure);
 			RandomPopulation(_settings.PopulationSize);
-			if(consolePrint)
+			Stopwatch watch = new Stopwatch();
+			
+			if (consolePrint)
+			{
+				watch.Start();
 				ConsoleHandler.PrintBestGenome(BestGenome, i);
+			}
 			while (Runnable(fromLastChange))
 			{
 				i++;
+				if (consolePrint)
+				{
+					if (watch.Elapsed.Seconds > RefreshTime || i == 0)
+					{
+						Console.WriteLine("Current iteration: " + i);
+						Console.SetCursorPosition(0, Console.CursorTop - 1);
+						watch.Restart();
+					}
+				}
 				lastBest.Copy(BestGenome);
 
 				// Parallel implementation
