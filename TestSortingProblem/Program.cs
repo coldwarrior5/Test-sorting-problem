@@ -10,9 +10,9 @@ namespace TestSortingProblem
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("Test sorting problem");
+            Console.WriteLine("Test sorting problem\n");
 	        Solve(args);
-			Console.WriteLine("Application finished execution");
+			Console.WriteLine("\nApplication finished execution");
         }
 
 	    private static void Solve(string[] args)

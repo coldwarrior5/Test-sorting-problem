@@ -8,14 +8,13 @@ namespace TestSortingProblem.Handlers
     {
 	    public readonly string Name;
 		public int ResourceCount { get; }
-		public int ElementCount { get; private set; }
+		public int[] ElementCount { get; private set; }
         private List<int>[] _starts;
         private List<int>[] _ends;
         private List<int>[] _tests;
 
         public Scheduler(int resourceCount, string name)
         {
-	        ElementCount = 0;
 			ResourceCount = resourceCount;
 	        Name = name;
             Init();
@@ -23,13 +22,15 @@ namespace TestSortingProblem.Handlers
 
         private void Init()
         {
+			ElementCount = new int[ResourceCount];
             _starts = new List<int>[ResourceCount];
             _ends = new List<int>[ResourceCount];
             _tests = new List<int>[ResourceCount];
             
             for (var i = 0; i < ResourceCount; i++)
             {
-                _starts[i] = new List<int>();
+	            ElementCount[i] = 0;
+				_starts[i] = new List<int>();
                 _ends[i] = new List<int>();
 	            _tests[i] = new List<int>();
             }
@@ -69,7 +70,7 @@ namespace TestSortingProblem.Handlers
             {
 				schedulerInstances = new List<Schedule>();
 				int currentMax = startTime;
-				for (var j = 0; j < _starts[i].Count + 1; j++)
+				for (var j = 0; j < ElementCount[i] + 1; j++)
 				{
 					var startsAt = j == 0 ? 0 : _ends[i][j - 1];
 					if(j == _starts[i].Count && currentMax > startTime)
@@ -152,7 +153,37 @@ namespace TestSortingProblem.Handlers
             return found;
         }
 
-	    private bool SchedulerError(Schedule schedulerInstance, int i, ref int currentMax, ref int j)
+	    public void IndexesAfterFirstEmpties(out List<int> testIndex)
+	    {
+			testIndex = new List<int>();
+		    for (var i = 0; i < ResourceCount; i++)
+		    {
+				if(ElementCount[i] == 0)
+					continue;
+			    for (var j = 0; j < ElementCount[i] + 1; j++)
+			    {
+				    var startsAt = j == 0 ? 0 : _ends[i][j - 1];
+				    var endsAt = j == ElementCount[i] ? _ends[i][j - 1] : _starts[i][j];
+				    if (startsAt != endsAt)
+				    {
+						testIndex.Add(_tests[i][j]);
+					}
+			    }
+		    }
+	    }
+
+	    public void IndexesFindLastIndex(out List<int> testIndex)
+	    {
+		    testIndex = new List<int>();
+		    for (var i = 0; i < ResourceCount; i++)
+		    {
+			    if (ElementCount[i] == 0)
+				    continue;
+				testIndex.Add(_tests[i][ElementCount[i] - 1]);
+		    }
+	    }
+
+		private bool SchedulerError(Schedule schedulerInstance, int i, ref int currentMax, ref int j)
 	    {
 		    if (schedulerInstance.StartTime > currentMax)
 			    currentMax = schedulerInstance.StartTime;
@@ -186,7 +217,7 @@ namespace TestSortingProblem.Handlers
 
 	    private void Add(Schedule schedule, int test, int length)
         {
-	        ElementCount++;
+	        ElementCount[schedule.ResourceIndex]++;
 			_starts[schedule.ResourceIndex].Insert(schedule.Place, schedule.StartTime);
             _ends[schedule.ResourceIndex].Insert(schedule.Place, schedule.StartTime + length);
             _tests[schedule.ResourceIndex].Insert(schedule.Place, test);
@@ -194,13 +225,13 @@ namespace TestSortingProblem.Handlers
 
         public void Remove(int testIndex)
         {
-	        ElementCount--;
             for(var i = 0; i < ResourceCount; i++)
             {
                 for(var j = 0; j < _tests[i].Count; j++)
                 {
                     if (_tests[i][j] != testIndex) continue;
-                    _starts[i].RemoveAt(j);
+	                ElementCount[i]--;
+					_starts[i].RemoveAt(j);
                     _ends[i].RemoveAt(j);
                     _tests[i].RemoveAt(j);
 	                return;
@@ -224,10 +255,10 @@ namespace TestSortingProblem.Handlers
 	            if (removeIndex == -1) continue;
 
 	            int difference = _starts[i].Count - removeIndex;
-	            ElementCount -= difference;
-                _starts[i].RemoveRange(removeIndex, difference);
-                _ends[i].RemoveRange(removeIndex, difference);
-                _tests[i].RemoveRange(removeIndex, difference);
+	            ElementCount[i] -= difference;
+	            _starts[i] = _starts[i].GetRange(0, removeIndex); //RemoveRange(removeIndex, difference);
+                _ends[i] = _ends[i].GetRange(0, removeIndex); //RemoveRange(removeIndex, difference);
+                _tests[i] = _tests[i].GetRange(0, removeIndex); //.RemoveRange(removeIndex, difference);
 			}
         }
 
@@ -235,7 +266,7 @@ namespace TestSortingProblem.Handlers
 	    {
 			for (int i = 0; i < ResourceCount; i++)
 			{
-				ElementCount = 0;
+				ElementCount[i] = 0;
 				_starts[i].Clear();
 				_ends[i].Clear();
 				_tests[i].Clear();

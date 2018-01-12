@@ -22,24 +22,31 @@ namespace TestSortingProblem.GeneticAlgorithm
             Size = instance.Tests.Length;
             _instance = instance;
 	        Fitness = int.MaxValue;
-            InitArrays(instance);
+            InitArrays(_instance);
         }
 
-        public Genome(int[] startingTimes, int[] endingTimes, string[] machines, Instance instance)
+	    private Genome(Genome other)
         {
-	        Size = instance.Tests.Length;
-            _instance = instance;
-            var startingLength = startingTimes.Length;
-            var endingLength = endingTimes.Length;
-            var machinesLength = machines.Length;
-            if (Size != startingLength || Size != machinesLength || Size != endingLength)
-                throw new ArgumentException("The arrays must be of the same size");
+	        Size = other.Size;
+	        _instance = other._instance;
+	        Fitness = other.Fitness;
+			InitArrays(_instance);
 
-            Size = startingLength;
-            InitArrays(instance);
-            SetMachines(machines);
-            SetStarts(startingTimes);
-            SetEndings(endingTimes);
+			for (var i = 0; i < other.Size; i++)
+	        {
+		        _startingTimes[i] = other._startingTimes[i];
+		        _endingTimes[i] = other._endingTimes[i];
+		        _machines[i] = other._machines[i];
+	        }
+
+	        for (var i = 0; i < other._machineSchedulers.Length; i++)
+	        {
+		        _machineSchedulers[i] = other.CopyMachineScheduler(i);
+	        }
+	        for (var i = 0; i < other._resourceSchedulers.Length; i++)
+	        {
+		        _resourceSchedulers[i] = other.CopyResourceeScheduler(i);
+	        }
         }
 
         private void InitArrays(Instance instance)
@@ -103,21 +110,33 @@ namespace TestSortingProblem.GeneticAlgorithm
 			scheduler.CanFit(chosenTest.Length, dependencySchedulers, out machineSchedule, out dependencySchedules);
 	    }
 
-	    public void SwapPlaces(int firstIndex, int secondIndex)
+	    public void SwapPlaces(Random rand)
         {
-	        Test firstTest = _instance.Tests[firstIndex];
-            Test secondTest = _instance.Tests[secondIndex];
-            
-            RemoveTestFromMachine(firstIndex);
-            RemoveTestFromMachine(secondIndex);
-
-            if(firstTest.Resources.Count != 0)
-                RemoveTestFromResources(firstIndex);
-            if(secondTest.Resources.Count != 0)
-                RemoveTestFromResources(secondIndex);    
-            FindSchedule(secondIndex);
-            FindSchedule(firstIndex);
-        }
+	        foreach (Scheduler t in _machineSchedulers)
+	        {
+		        t.IndexesAfterFirstEmpties(out List<int> removeTestsIndexes);
+		        for (int i = 0; i < removeTestsIndexes.Count; i++)
+		        {
+					RemoveTestFromMachine(removeTestsIndexes[i]);
+			        if (_instance.Tests[removeTestsIndexes[i]].Resources.Count != 0)
+				        RemoveTestFromResources(removeTestsIndexes[i]);
+			        _startingTimes[removeTestsIndexes[i]] = -1;
+			        _endingTimes[removeTestsIndexes[i]] = -1;
+			        _machines[removeTestsIndexes[i]] = "";
+				}
+		        t.IndexesFindLastIndex(out removeTestsIndexes);
+		        for (int i = 0; i < removeTestsIndexes.Count; i++)
+		        {
+			        RemoveTestFromMachine(removeTestsIndexes[i]);
+			        if (_instance.Tests[removeTestsIndexes[i]].Resources.Count != 0)
+				        RemoveTestFromResources(removeTestsIndexes[i]);
+					_startingTimes[removeTestsIndexes[i]] = -1;
+			        _endingTimes[removeTestsIndexes[i]] = -1;
+			        _machines[removeTestsIndexes[i]] = "";
+				}
+			}
+	        UpdateTestsAfterRemoval(rand);
+		}
 
         public void ScrambleGenes(int firstIndex, int secondIndex, Random rand)
         {
@@ -142,17 +161,22 @@ namespace TestSortingProblem.GeneticAlgorithm
 		        return;
 	        time = time == -1 ? rand.Next(Fitness) : time;
             RemoveTestsAfter(time);
-	        int[] randomChoice = Enumerable.Range(0, Size).OrderBy(x => rand.Next()).ToArray();
-			for (int i = 0; i < Size; i++)
-            {
-                if(_startingTimes[randomChoice[i]] == -1)
-                {
-                    FindSchedule(randomChoice[i]);
-                }
-            }
+	        UpdateTestsAfterRemoval(rand);
         }
 
-        public int[] GetEndingTimes()
+	    private void UpdateTestsAfterRemoval(Random rand)
+	    {
+		    int[] randomChoice = Enumerable.Range(0, Size).OrderBy(x => rand.Next()).ToArray();
+		    for (int i = 0; i < Size; i++)
+		    {
+			    if (_startingTimes[randomChoice[i]] == -1)
+			    {
+				    FindSchedule(randomChoice[i]);
+			    }
+		    }
+	    }
+
+	    public int[] GetEndingTimes()
         {
             return _endingTimes;
         }
@@ -224,26 +248,6 @@ namespace TestSortingProblem.GeneticAlgorithm
 			}
         }
 
-        private void SetStarts(int[] startingTimes)
-        {
-            if (startingTimes.Length != Size)
-                return;
-            for (var i = 0; i < Size; i++)
-            {
-                _startingTimes[i] = startingTimes[i];
-            }
-        }
-        
-        private void SetEndings(int[] endingTimes)
-        {
-            if (endingTimes.Length != Size)
-                return;
-            for (var i = 0; i < Size; i++)
-            {
-                _endingTimes[i] = endingTimes[i];
-            }
-        }
-
 	    public int FirstStart()
 	    {
 			int minStart = int.MaxValue;
@@ -267,29 +271,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 		    }
 		    return maxEnd;
 	    }
-
-        public void Copy(Genome newState)
-        {
-            if (Size != newState.Size)
-                return;
-            for (var i = 0; i < newState.Size; i++)
-            {
-                _startingTimes[i] = newState._startingTimes[i];
-                _endingTimes[i] = newState._endingTimes[i];
-                _machines[i] = newState._machines[i];
-            }
-
-            for (var i = 0; i < newState._machineSchedulers.Length; i++)
-            {
-                _machineSchedulers[i] = newState.CopyMachineScheduler(i);
-            }
-	        for (var i = 0; i < newState._resourceSchedulers.Length; i++)
-	        {
-				_resourceSchedulers[i] = newState.CopyResourceeScheduler(i);
-			}
-	        Fitness = newState.Fitness;
-        }
-
+        
         private void RemoveTestFromMachine(int testIndex)
         {
 	        string machineName = _machines[testIndex];
@@ -317,14 +299,14 @@ namespace TestSortingProblem.GeneticAlgorithm
 
         private void RemoveTestsAfter(int time)
         {
-            for(int i = 0; i < _machineSchedulers.Length; i++)
+            foreach (Scheduler t in _machineSchedulers)
             {
-                _machineSchedulers[i].RemoveAfter(time);
+	            t.RemoveAfter(time);
             }
 
-            for(int i = 0; i < _resourceSchedulers.Length; i++)
+            foreach (Scheduler t in _resourceSchedulers)
             {
-                _resourceSchedulers[i].RemoveAfter(time);
+	            t.RemoveAfter(time);
             }
             UpdateArrays(time);
         }
@@ -333,16 +315,41 @@ namespace TestSortingProblem.GeneticAlgorithm
         {
             for(int i = 0; i < Size; i++)
             {
-                if(_startingTimes[i] >= time)
-                {
-                    _startingTimes[i] = -1;
-                    _endingTimes[i] = -1;
-                    _machines[i] = "";
-                }
+	            if (_startingTimes[i] < time) continue;
+	            _startingTimes[i] = -1;
+	            _endingTimes[i] = -1;
+	            _machines[i] = "";
             }
         }
 
-	    public static string ParseTimes(Genome genome)
+	    public void Copy(Genome newState)
+	    {
+		    if (Size != newState.Size)
+			    return;
+		    for (var i = 0; i < newState.Size; i++)
+		    {
+			    _startingTimes[i] = newState._startingTimes[i];
+			    _endingTimes[i] = newState._endingTimes[i];
+			    _machines[i] = newState._machines[i];
+		    }
+
+		    for (var i = 0; i < newState._machineSchedulers.Length; i++)
+		    {
+			    _machineSchedulers[i] = newState.CopyMachineScheduler(i);
+		    }
+		    for (var i = 0; i < newState._resourceSchedulers.Length; i++)
+		    {
+			    _resourceSchedulers[i] = newState.CopyResourceeScheduler(i);
+		    }
+		    Fitness = newState.Fitness;
+	    }
+
+	    public Genome Copy()
+	    {
+		    return new Genome(this);
+	    }
+
+		public static string ParseTimes(Genome genome)
 	    {
 		    return "begins at: " + genome.FirstStart() + ", ends at: " + genome.LastEnd();
 	    }

@@ -5,7 +5,6 @@ using TestSortingProblem.Abstract;
 using TestSortingProblem.Handlers;
 using TestSortingProblem.Structures;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace TestSortingProblem.GeneticAlgorithm
 {
@@ -14,6 +13,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 		private readonly GaSettings _settings;
 
 		private bool _abort;
+		private static int _currentIteration;
 		private const double RefreshTime = 0.1;
 		
 		public Algorithm(Instance instance, ExecutionTime time, GaSettings settings) : base(instance, time)
@@ -24,10 +24,14 @@ namespace TestSortingProblem.GeneticAlgorithm
 
 		public override Solution Solve(bool consolePrint)
 		{
+			Console.CursorVisible = false;
             var workerThread = new Thread(() => Start(consolePrint));
+			var monitorThread = new Thread(UpdateIteration);
+			if (consolePrint)
+				monitorThread.Start();
 			workerThread.Start();
-
 			SetAbortSignal();
+			monitorThread.Join();
 			workerThread.Join();
 
 			Solution solution = new Solution(Structure.TestList, BestGenome.GetStartingTimes(), BestGenome.GetMachines());
@@ -36,50 +40,35 @@ namespace TestSortingProblem.GeneticAlgorithm
 
 		protected override void Start(bool consolePrint)
 		{
-			int i = 0;
+			_currentIteration = 0;
 			int fromLastChange = 0;
 			int howManyDies = (int)(_settings.Mortality * _settings.PopulationSize);
 			Genome lastBest = new Genome(Structure);
 			RandomPopulation(_settings.PopulationSize);
-			Stopwatch watch = new Stopwatch();
 			
 			if (consolePrint)
-			{
-				watch.Start();
-				ConsoleHandler.PrintBestGenome(BestGenome, i);
-			}
+				ConsoleHandler.PrintBestGenome(BestGenome, _currentIteration);
 			while (Runnable(fromLastChange))
 			{
-				i++;
-				if (consolePrint)
-				{
-					if (watch.Elapsed.Seconds > RefreshTime || i == 0)
-					{
-						Console.WriteLine("Current iteration: " + i);
-						Console.SetCursorPosition(0, Console.CursorTop - 1);
-						watch.Restart();
-					}
-				}
+				_currentIteration++;
 				lastBest.Copy(BestGenome);
 
 				// Parallel implementation
-				Parallel.For(0, howManyDies, ThreeTournament);	// Mortality determines how many times we should do the Tournaments
+				//Parallel.For(0, howManyDies, ThreeTournament);  // Mortality determines how many times we should do the Tournaments
+
+				for (int i = 0; i < howManyDies; i++)
+					ThreeTournament(i);
 				
 				DetermineBestFitness();
-				if (!(BestGenome.Fitness < lastBest.Fitness))
-				{
-					fromLastChange++;
-					continue;
-				}
-				fromLastChange = 0;
-				if (consolePrint)
-					ConsoleHandler.PrintBestGenome(BestGenome, i);
+				fromLastChange = !(BestGenome.Fitness < lastBest.Fitness) ? fromLastChange + 1 : 0;
+				if(consolePrint && BestGenome.Fitness < lastBest.Fitness)
+					ConsoleHandler.PrintBestGenome(BestGenome, _currentIteration);
 			}
 		}
 		
 		private void ThreeTournament(int index)
 		{
-			Random rnd = new Random(index);
+			Random rnd = new Random(index + DateTime.Now.Millisecond);
 			List<int> choices = new List<int>(3);
 			while (true)
 			{
@@ -99,11 +88,10 @@ namespace TestSortingProblem.GeneticAlgorithm
 
 			Genome temp = new Genome(Structure);
 			Order(order);
-			temp.Copy(order[2]);
-
+			
 			Crossover(order[0], order[1], ref temp);
-
-			if (Rand.NextDouble() < _settings.MutationProbability * 10)
+			
+			if (Rand.NextDouble() < _settings.MutationProbability * 10) 
 				Mutation(ref temp);
 			
 			DetermineGenomeFitness(ref temp);
@@ -124,6 +112,23 @@ namespace TestSortingProblem.GeneticAlgorithm
 				return;
 			Thread.Sleep(timeInMiliseconds);
 			_abort = true;
+		}
+
+		private void UpdateIteration()
+		{
+			Stopwatch watch = new Stopwatch();
+			watch.Start();
+			int lastI = _currentIteration;
+			while (!_abort)
+			{
+				if (watch.Elapsed.Seconds > RefreshTime)
+				{
+					Console.WriteLine("Current iteration: " + _currentIteration + "\nIteration delta: " + (_currentIteration - lastI) + "    ");
+					Console.SetCursorPosition(0, Console.CursorTop - 2);
+					watch.Restart();
+					lastI = _currentIteration;
+				}
+			}
 		}
 
 		// ReSharper disable once UnusedMember.Local
@@ -163,7 +168,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 			{
 				for (int j = 0; j < machines[i].ResourceCount; j++)
 				{
-					for (int k = 1; k < machines[i].ElementCount; k++)
+					for (int k = 1; k < machines[i].ElementCount[j]; k++)
 					{
 						Schedule first = machines[i].GetSchedule(j, k - 1);
 						Schedule second = machines[i].GetSchedule(j, k);
@@ -178,7 +183,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 			{
 				for (int j = 0; j < resources[i].ResourceCount; j++)
 				{
-					for (int k = 1; k < resources[i].ElementCount; k++)
+					for (int k = 1; k < resources[i].ElementCount[j]; k++)
 					{
 						Schedule first = resources[i].GetSchedule(j, k - 1);
 						Schedule second = resources[i].GetSchedule(j, k);

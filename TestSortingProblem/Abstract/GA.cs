@@ -103,20 +103,19 @@ namespace TestSortingProblem.Abstract
 		protected void Mutation(ref Genome gene)
 		{
 			int which = Rand.Next(4);
-			
 			switch (which)
 			{
 				case 0:
-					MutationMethods.RandomMutation(ref gene, Rand);
-					break;
-				case 1:
 					MutationMethods.SwapMutation(ref gene, Rand);
 					break;
-				case 2:
+				case 1:
 					MutationMethods.ScrambleMutation(ref gene, Rand);
 					break;
+				case 2:
+					MutationMethods.RandomMutation(ref gene, Rand);
+					break;
 				case 3:
-					MutationMethods.TotalMutation(ref gene, Rand);
+					MutationMethods.CompletelyRandomMutation(ref gene, Rand);
 					break;
 				default:
 					gene = null;
@@ -364,20 +363,7 @@ namespace TestSortingProblem.Abstract
 	{
 		public static void SwapMutation(ref Genome gene, Random rand)
 		{
-			int firstIndex = rand.Next(gene.Size - 1);
-			int secondIndex = rand.Next(firstIndex + 1, gene.Size);
-
-			gene.SwapPlaces(firstIndex, secondIndex);
-		}
-
-		public static void RandomMutation(ref Genome gene, Random rand)
-		{
-			gene.Randomize(rand);
-		}
-
-		public static void TotalMutation(ref Genome gene, Random rand)
-		{
-			gene.Randomize(rand, 0);
+			gene.SwapPlaces(rand);
 		}
 
 		public static void ScrambleMutation(ref Genome gene, Random rand)
@@ -385,6 +371,16 @@ namespace TestSortingProblem.Abstract
 			int firstIndex = rand.Next(gene.Size - 1);
 			int secondIndex = rand.Next(firstIndex + 1, gene.Size);
 			gene.ScrambleGenes(firstIndex, secondIndex, rand);
+		}
+
+		public static void RandomMutation(ref Genome gene, Random rand)
+		{
+			gene.Randomize(rand);
+		}
+
+		public static void CompletelyRandomMutation(ref Genome gene, Random rand)
+		{
+			gene.Randomize(rand, 0);
 		}
 	}
 }
