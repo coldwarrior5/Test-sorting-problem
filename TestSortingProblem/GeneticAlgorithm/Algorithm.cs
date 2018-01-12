@@ -13,17 +13,19 @@ namespace TestSortingProblem.GeneticAlgorithm
 		private readonly GaSettings _settings;
 
 		private bool _abort;
+		private bool _abortTimer;
 		private static int _currentIteration;
 		private const double RefreshTime = 0.1;
 		
 		public Algorithm(Instance instance, ExecutionTime time, GaSettings settings) : base(instance, time)
 		{
 			_settings = settings;
-			_abort = false;
 		}
 
 		public override Solution Solve(bool consolePrint)
 		{
+			_abort = false;
+			_abortTimer = false;
 			Console.CursorVisible = false;
             var workerThread = new Thread(() => Start(consolePrint));
 			var monitorThread = new Thread(UpdateIteration);
@@ -31,8 +33,9 @@ namespace TestSortingProblem.GeneticAlgorithm
 				monitorThread.Start();
 			workerThread.Start();
 			SetAbortSignal();
-			monitorThread.Join();
 			workerThread.Join();
+			_abortTimer = true;
+			monitorThread.Join();
 
 			Solution solution = new Solution(Structure.TestList, BestGenome.GetStartingTimes(), BestGenome.GetMachines());
 			return solution;
@@ -119,7 +122,7 @@ namespace TestSortingProblem.GeneticAlgorithm
 			Stopwatch watch = new Stopwatch();
 			watch.Start();
 			int lastI = _currentIteration;
-			while (!_abort)
+			while (!_abortTimer)
 			{
 				if (watch.Elapsed.Seconds > RefreshTime)
 				{
