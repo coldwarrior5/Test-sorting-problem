@@ -4,4 +4,4 @@ dotnet: 2.0.0
 script:
   - cd TestSortingProblem
   - dotnet restore
-  - dotnet build ./TestSortingProblem/
+  - dotnet build
