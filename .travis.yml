@@ -1,8 +1,7 @@
 language: csharp
 mono: none
-dotnet: 2.1
-before-install:
-  - sudo apt-get install dotnet-sdk-2.1.105
+dotnet: 2.0.0
 script:
   - cd TestSortingProblem
-  - dotnet build
+  - dotnet restore
+  - dotnet build ./TestSortingProblem/
