@@ -1,4 +1,4 @@
 language: csharp
 script:
   - cd TestSortingProblem
-  - dotnet build ./TestSortingProblem.dll
+  - dotnet build
